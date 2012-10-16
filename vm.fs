@@ -36,16 +36,19 @@ variable VM_IA
 
 : get-code-word-op ( word -- op )
 		\ bottom 5 bits
-		0xF and ;
+		0xF and
+;
 
 : get-code-word-a ( word -- a )
 		\ top 6 bits
-		10 rshift ;
+		10 rshift
+;
 
 : get-code-word-b ( word -- b )
 		\ 2nd 5 bits from bottom
 		5 rshift
-		0xF and ;
+		0xF and
+;
 
 1 constant LOC_REG
 2 constant LOC_MEM
@@ -68,8 +71,8 @@ end-struct vmloc
 \ <name> vmloc-loc \ gets mem address of the loc
 
 create test-code
-0x7c01 sh, 0x0030 sh,
-0x7fc1 sh, 0x0020 sh, 0x1000 sh,
-0x7803 sh, 0x1000
-0xc013 sh,
-0x7f80 sh, 0x0020 sh,
+0x7c01 w, 0x0030 w,
+0x7fc1 w, 0x0020 w, 0x1000 w,
+0x7803 w, 0x1000
+0xc013 w,
+0x7f80 w, 0x0020 w,

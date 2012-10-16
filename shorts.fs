@@ -16,7 +16,7 @@
 1 shorts 1 shorts 2constant short%
 
 \ support using shorts within a create
-: sh, ( n -- )
+: w, ( n -- )
 		here w! \ store the short at here
 		short allot
 ;

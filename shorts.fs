@@ -21,3 +21,20 @@
 		short allot
 ;
 \ create <name> <short> sh, <short> sh, ...
+
+\ Storage for the size (in shorts) of the last create <name> <val> cw, ...
+variable cw,-len
+0 cw,-len !
+: cw, ( n -- )
+		1 cw,-len +!
+		w,
+;
+\ To use:
+\ create test-code 0x7c01 cw, 0x0030 cw,
+\ cw,-len @ --> (size of test-code)
+
+: wvariable ( "name" -- addr )
+		\ creates a 2-byte variable
+		create short allot
+;
+

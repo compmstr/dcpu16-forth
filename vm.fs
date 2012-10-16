@@ -15,10 +15,10 @@ include util.fs
 6 constant REG_I
 7 constant REG_J
 
-variable VM_PC
-variable VM_SP
-variable VM_EX
-variable VM_IA
+wvariable VM_PC
+wvariable VM_SP
+wvariable VM_EX
+wvariable VM_IA
 
 : reg-get ( register -- n )
 		vm_registers w@
@@ -61,18 +61,59 @@ variable VM_IA
 9 constant LOC_IA
 
 struct
-	short% field vmloc-type
-	short% field vmloc-register
-	short% field vmloc-loc
-	short% field vmloc-val
+		\ one of the LOC_... constants
+		short% field vmloc-type
+		\ Register to use
+		short% field vmloc-register
+		\ Ram location to use
+		short% field vmloc-loc
+		\ Value for literals
+		short% field vmloc-val
 end-struct vmloc
 
 \ create <name> vmloc %allot (%alloc does on heap)
 \ <name> vmloc-loc \ gets mem address of the loc
 
+: vmloc-store ( val loc -- )
+		case dup vmloc-type w@
+				LOC_REG of
+						vmloc-register w@ \ val register
+						reg-set
+				endof
+		endcase
+;
+create test-loc vmloc %allot
+: test-loc-store
+		LOC_REG test-loc vmloc-type w!
+		REG_A test-loc vmloc-register w!
+		15 REG_A reg-set
+		20 test-loc vmloc-store
+		REG_A reg-get .
+;
+
 create test-code
-0x7c01 w, 0x0030 w,
-0x7fc1 w, 0x0020 w, 0x1000 w,
-0x7803 w, 0x1000
-0xc013 w,
-0x7f80 w, 0x0020 w,
+0x7c01 cw, 0x0030 cw,
+0x7fc1 cw, 0x0020 cw, 0x1000 cw,
+0x7803 cw, 0x1000 cw,
+0xc013 cw,
+0x7f80 cw, 0x0020 cw,
+
+variable test-code-len
+cw,-len @ test-code-len !
+
+: load-test-code ( -- )
+		test-code-len @ 0 do
+				test-code i shorts + @
+				i ram-set
+		loop
+;
+
+: vm-init ( -- )
+		load-test-code
+		0 VM_PC w!
+		0xFFFF VM_SP w!
+		0 VM_EX w!
+		0 VM_IA w!
+;
+
+		

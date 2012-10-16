@@ -1,6 +1,6 @@
-include shorts.fs
-include ops.fs
-include util.fs
+needs shorts.fs
+needs ops.fs
+needs util.fs
 
 0x10000 short-array vm_ram
 
@@ -82,7 +82,8 @@ end-struct vmloc
 				endof
 		endcase
 ;
-create test-loc vmloc %allot
+
+create test-loc vmloc %allot drop
 : test-loc-store
 		LOC_REG test-loc vmloc-type w!
 		REG_A test-loc vmloc-register w!

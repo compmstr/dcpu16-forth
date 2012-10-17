@@ -26,17 +26,16 @@ needs ops.fs
 		dup 0x0000 <> if
 			dup get-code-word-a \ word a-code
 			vmloc-from-bits \ word a-loc
-			." A: " dump-vmloc cr
+			\ ." A: " dump-vmloc cr
 			over dup get-code-word-op \ word a-loc word op
 			swap get-code-word-b \ word a-loc op b-code
 			swap OP_SPECIAL <> if \ if op isn't special/0
 					vmloc-from-bits \ get b, otherwise it's the special op
-					." B: " dump-vmloc cr
+					\ ." B: " dump-vmloc cr
 			then
 			\ word a b
 			rot dup \ a b word word
-			." Op: " get-code-word-op .
-			cr
+			\ ." Op: " get-code-word-op . cr
 	else
 		VM_PC- \ set PC back one
 	then
@@ -44,4 +43,5 @@ needs ops.fs
 
 : vm-skip ( -- ) \ skips next code word
 		get-next-code-word
+		2drop drop \ drop a, b, and word
 ;

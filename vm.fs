@@ -82,6 +82,15 @@ cw,-len @ test-code-len !
 		then
 ;
 
+: vm-run ( -- ) \ runs until get-next-code-word returns 0
+		begin
+				get-next-code-word dup while
+						run-word
+		repeat
+		." Done" cr
+		drop \ drop the 0 left over from get-next-code-word
+;
+
 : encode-word ( a b op -- val )
 		swap 5 lshift + \ a b/op
 		swap 10 lshift + \ a/b/op

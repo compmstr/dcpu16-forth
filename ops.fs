@@ -2,8 +2,16 @@ needs util.fs
 needs vmvars.fs
 needs vmloc.fs
 needs vmcode.fs
+needs specialops.fs
 
-: run-OP_SPECIAL ( a b -- )
+: run-OP_SPECIAL ( a op -- )
+		\ b is the new code op
+		special-ops-xt @
+		0 over = if
+				." Special opcode not implemented"
+		else
+				execute
+		then
 ;
 : run-OP_SET ( a b -- ) \ a -> b
 		." OP_SET"
@@ -50,12 +58,14 @@ needs vmcode.fs
 ;
 : run-OP_IFE ( a b -- ) \ run next code only if a == b
 		." OP_IFE" cr
+		vmloc-get swap vmloc-get \ b-val a-val
 		<> if
 				vm-skip
 		then
 ;
 : run-OP_IFN ( a b -- ) \ run next code only if a != b
 		." OP_IFN" cr
+		vmloc-get swap vmloc-get \ b-val a-val
 		= if
 				vm-skip
 		then

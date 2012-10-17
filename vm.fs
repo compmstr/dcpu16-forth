@@ -33,7 +33,9 @@ needs vmvars.fs
 				vmloc-from-bits \ get b, otherwise it's the special op
 				." B: " dump-vmloc cr
 		then
-		." Op: " dup get-code-word-op .
+		\ word a b
+		rot dup \ a b word word
+		." Op: " get-code-word-op .
 		cr
 ;
 
@@ -106,12 +108,14 @@ cw,-len @ test-code-len !
 						drop run-special-word
 				endof
 				OP_SET of
+						." OP_SET" cr
 						swap vmloc-get \ b a-val
 						swap vmloc-set \ a-val b vmloc-set
 				endof
 				OP_ADD of
 				endof
 				OP_SUB of \ b-a -> b
+						." OP_SUB cr
 						swap over vmloc-get \ b a b-val
 						swap vmloc-get \ b b-val a-val
 						- \ b b-a
@@ -148,6 +152,7 @@ cw,-len @ test-code-len !
 				OP_IFE of
 				endof
 				OP_IFN of \ run next code only if a != b
+						." OP_IFN"
 						= if
 								vm-skip
 						then
@@ -169,6 +174,7 @@ cw,-len @ test-code-len !
 				OP_STD of
 				endof
 		endcase
+		.s
 ;
 
 : vm-step ( -- )

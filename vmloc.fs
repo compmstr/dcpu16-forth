@@ -43,7 +43,7 @@ end-struct vmloc
 				over vmloc-loc w! \ loc
 				exit \ RETURN
 		then
-		case dup
+		case dup \ loc 5/6bit ( case takes off duplicate )
 				0x18 of \ PUSH [--SP] if b (dest), POP [SP++] if a (src)
 						over vmloc-type LOC_PUSHPOP swap w!
 						drop
@@ -82,6 +82,7 @@ end-struct vmloc
 						get-next-word
 						over vmloc-val w!
 				endof
+				\ TODO This part doesn't work
 				dup 0x20 >= if \ 5/6bit 0x20 >= has to have 6th bit set
 						over vmloc-type LOC_LITERAL swap w!
 						0x20 -
@@ -106,6 +107,9 @@ end-struct vmloc
 \ <name> vmloc-loc \ gets mem address of the loc
 
 : vmloc-set ( val loc -- )
+		." vmloc-set"
+		.s
+		cr
 		case dup vmloc-type w@
 				LOC_REG of
 						vmloc-register w@ \ val register
@@ -149,6 +153,9 @@ end-struct vmloc
 						VM_IA w!
 				endof
 		endcase
+		." end-vmloc-set"
+		.s
+		cr
 ;
 
 : vmloc-get ( loc -- val )

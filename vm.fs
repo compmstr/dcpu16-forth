@@ -282,6 +282,15 @@ create test-code
 variable test-code-len
 cw,-len @ test-code-len !
 
+: vm-skip ( -- ) \ skips next code word
+		get-next-word \ word
+		dup get-code-word-a \ word a-bits
+		vmloc-from-bits drop \ word
+		\ TODO if op == 0, don't get B
+		get-code-word-b \ b-bits
+		vmloc-from-bits drop \ --
+;
+
 : load-test-code ( -- )
 		test-code-len @ 0 do
 				test-code i shorts + w@
@@ -357,7 +366,7 @@ cw,-len @ test-code-len !
 				endof
 				OP_IFE of
 				endof
-				OP_IFN of
+				OP_IFN of \ run next code only if a != b
 				endof
 				OP_IFG of
 				endof
@@ -391,6 +400,8 @@ cw,-len @ test-code-len !
 		dump-vmloc
 		cr
 		rot \ a-loc b-loc word
+		." Op: " dup get-code-word-op .
+		cr
 		run-word
 ;
 

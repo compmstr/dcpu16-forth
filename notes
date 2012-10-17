@@ -1,0 +1,10 @@
+to debug... start normally
+dbg <word>
+  <ret> execute next word
+	n nest - single step through next word
+	u unnest - execute rest of word, if called from nest, continue wtih calling word
+	d done - stop debugging
+	s stop - abort
+
+break: set breakpoint (in code)
+break" <string>" like break:, but prints string out

@@ -1,43 +1,9 @@
 needs shorts.fs
 needs constants.fs
+needs ops.fs
 needs util.fs
 needs vmloc.fs
 needs vmvars.fs
-
-: get-code-word-op ( word -- op )
-		\ bottom 5 bits
-		0x1F and
-;
-
-: get-code-word-a ( word -- a )
-		\ top 6 bits
-		10 rshift
-;
-
-: get-code-word-b ( word -- b )
-		\ 2nd 5 bits from bottom
-		5 rshift
-		0x1F and
-;
-
-\ get the next code word, as well as a/b if needed
-\   can also be used to skip an instruction
-: get-next-code-word ( -- a b word )
-		get-next-word \ word
-		dup get-code-word-a \ word a-code
-		vmloc-from-bits \ word a-loc
-		." A: " dump-vmloc cr
-		over dup get-code-word-op \ word a-loc word op
-		swap get-code-word-b \ word a-loc op b-code
-		swap OP_SPECIAL <> if \ if op isn't special/0
-				vmloc-from-bits \ get b, otherwise it's the special op
-				." B: " dump-vmloc cr
-		then
-		\ word a b
-		rot dup \ a b word word
-		." Op: " get-code-word-op .
-		cr
-;
 
 create test-loc vmloc %allot drop
 : test-loc-store
@@ -57,11 +23,6 @@ create test-code
 
 variable test-code-len
 cw,-len @ test-code-len !
-
-: vm-skip ( -- ) \ skips next code word
-		." SKIP"
-		get-next-code-word
-;
 
 : load-test-code ( -- )
 		test-code-len @ 0 do
@@ -103,83 +64,22 @@ cw,-len @ test-code-len !
 
 \ Standard opcodes
 : run-word ( a b word -- )
-		case get-code-word-op \ a b
-				OP_SPECIAL of
-						drop run-special-word
-				endof
-				OP_SET of
-						." OP_SET" cr
-						swap vmloc-get \ b a-val
-						swap vmloc-set \ a-val b vmloc-set
-				endof
-				OP_ADD of
-				endof
-				OP_SUB of \ b-a -> b
-						." OP_SUB cr
-						swap over vmloc-get \ b a b-val
-						swap vmloc-get \ b b-val a-val
-						- \ b b-a
-						swap vmloc-set
-				endof
-				OP_MUL of
-				endof
-				OP_MLI of
-				endof
-				OP_DIV of
-				endof
-				OP_DVI of
-				endof
-				OP_MOD of
-				endof
-				OP_MDI of
-				endof
-				OP_AND of
-				endof
-				OP_BOR of
-				endof
-				OP_XOR of
-				endof
-				OP_SHR of
-				endof
-				OP_ASR of
-				endof
-				OP_SHL of
-				endof
-				OP_IFB of
-				endof
-				OP_IFC of
-				endof
-				OP_IFE of
-				endof
-				OP_IFN of \ run next code only if a != b
-						." OP_IFN"
-						= if
-								vm-skip
-						then
-				endof
-				OP_IFG of
-				endof
-				OP_IFA of
-				endof
-				OP_IFL of
-				endof
-				OP_IFU of
-				endof
-				OP_ADX of
-				endof
-				OP_SBX of
-				endof
-				OP_STI of
-				endof
-				OP_STD of
-				endof
-		endcase
-		.s
+		get-code-word-op \ a b op
+		ops-xt @ \ <op xt or 0>
+		0 over = if
+				." Opcode not implemented"
+		else
+				execute
+		then
 ;
 
 : vm-step ( -- )
 		get-next-code-word
-		run-word
+		0 over <> if
+				run-word
+		else
+				." No more code"
+		then
 ;
 
 : encode-word ( a b op -- val )

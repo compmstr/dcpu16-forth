@@ -24,10 +24,53 @@ wvariable VM_IA
 		vm_ram w!
 ;
 
+: VM_EX-set ( val -- )
+  VM_EX w!
+;
+: VM_EX-get ( -- val )
+  VM_EX w@
+;
+: VM_PC-set ( val -- )
+  VM_PC w!
+;
+: VM_PC-get ( -- val )
+  VM_PC w@
+;
+: VM_SP-set ( val -- )
+  VM_SP w!
+;
+: VM_SP-get ( -- val )
+  VM_SP w@
+;
+: VM_IA-set ( val -- )
+  VM_IA w!
+;
+: VM_IA-get ( -- val )
+  VM_IA w@
+;
+
+: VM_PC+
+  VM_PC w@
+  1+ VM_PC w!
+;
+: VM_PC-
+  VM_PC w@
+  1- VM_PC w!
+;
+
+: VM_SP+
+  VM_SP w@
+  1+ VM_SP w!
+;
+: VM_SP-
+  VM_SP w@
+  1- VM_SP w!
+;
+
 : get-next-word ( -- n )
 		\ [PC++]
-		VM_PC w@ dup \ PC PC
-		ram-get swap \ [PC] PC
-		1+ VM_PC w! \ increment PC
+		VM_PC w@ \ PC
+		ram-get \ [PC]
+		VM_PC+ \ increment PC
 ;
 

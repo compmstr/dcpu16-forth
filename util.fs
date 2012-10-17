@@ -14,3 +14,12 @@
 		\ \ end a structure defiintion
 		\ constant
 \ ;
+
+: array ( size -- ; n -- addr )
+		create cells \ create n cells
+		here over erase \ clear them
+		allot
+	DOES>
+		swap cells + \ index in, address out
+;
+

@@ -78,15 +78,32 @@ needs specialops.fs
 ;
 : run-OP_DVI ( a b -- ) \ like DIV, but signed
 ;
-: run-OP_MOD ( a b -- )
+: run-OP_MOD ( a b -- ) \ sets b to b%a, if a == 0, sets b to 0 instead
+		." OP_MOD" cr
+		op-get-vals \ b b-val a-val
+		0 over = if
+				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
+		else
+				mod \ b <b-val%a-val>
+				swap vmloc-set
+		then
 ;
-: run-OP_MDI ( a b -- )
+: run-OP_MDI ( a b -- ) \ like mod, but signed (MDI -7, 16 == -7)
 ;
-: run-OP_AND ( a b -- )
+: run-OP_AND ( a b -- ) \ sets b to b&a
+		." OP_AND" cr
+		op-get-vals \ b b-val a-val
+		and swap vmloc-set
 ;
-: run-OP_BOR ( a b -- )
+: run-OP_BOR ( a b -- ) \ sets b to b|a
+		." OP_BOR cr
+		op-get-vals \ b b-val a-val
+		or swap vmloc-set
 ;
-: run-OP_XOR ( a b -- )
+: run-OP_XOR ( a b -- ) \ sets b to b^a
+		." OP_XOR cr
+		op-get-vals \ b b-val a-val
+		xor swap vmloc-set
 ;
 : run-OP_SHR ( a b -- )
 ;

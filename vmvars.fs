@@ -66,13 +66,21 @@ create vmloc_b vmloc %allot drop
   1- VM_PC w!
 ;
 
-: VM_SP+
-  VM_SP w@
+: VM_SP+1 \ ( -- ) pop
+	VM_SP-get
   1+ VM_SP w!
 ;
-: VM_SP-
-  VM_SP w@
+: VM_SP-1 \ ( -- ) push
+  VM_SP-get
   1- VM_SP w!
+;
+: VM_SP_PUSH \ ( val -- )
+		VM_SP-1
+		VM_SP-get ram-set
+;
+: VM_SP_POP \ ( -- val )
+		VM_SP-get ram-get
+		VM_SP+1
 ;
 
 : get-next-word ( -- n )

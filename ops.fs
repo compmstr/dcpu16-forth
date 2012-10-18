@@ -33,6 +33,7 @@ needs specialops.fs
 				0
 		then \ b b+a 0/1
 		VM_EX-set \ b b+a
+		.s cr
 		swap vmloc-set
 ;
 : run-OP_SUB ( a b -- ) \ b-a -> b -- EX is 0xFFFF if underflow, 0 otherwise
@@ -54,11 +55,26 @@ needs specialops.fs
 		dup 16 rshift 0xFFFF and \ b b*a EX
 		VM_EX-set \ b b*a
 		0xFFFF and \ b b*a (limited to 0xFFFF)
+		.s cr
 		swap vmloc-set
 ;
 : run-OP_MLI ( a b -- ) \ like MUL, but signed
 ;
 : run-OP_DIV ( a b -- ) \ sets b to b/a, sets EX to ((b<<16)/a)&0xFFFF. if a==0, sets b, EX to 0
+		." OP_DIV" cr
+		op-get-vals \ b b-val a-val
+		0 over = if
+				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
+				0 VM_EX-set
+		else
+				2dup \ b b-val a-val b-val a-val
+				swap 16 lshift \ ... a-val b-val<<16
+				swap / \ ... b-val<<16 / a-val
+				0xFFFF and VM_EX-set \ b b-val a-val
+				/ \ b b/a
+				.s cr
+				swap vmloc-set
+		then
 ;
 : run-OP_DVI ( a b -- ) \ like DIV, but signed
 ;

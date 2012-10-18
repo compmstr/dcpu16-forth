@@ -4,19 +4,14 @@ needs vm.fs
 needs constants.fs
 needs vmvars.fs
 
-struct
-		\ one of the LOC_... constants
-		short% field vmloc-type
-		\ Register to use
-		short% field vmloc-register
-		\ Ram location to use
-		short% field vmloc-loc
-		\ Value for literals
-		short% field vmloc-val
-end-struct vmloc
+: vmloc-clear ( vmloc -- vmloc )
+		dup vmloc swap drop \ vmloc vmloc <sizeof vmloc>
+		erase \ vmloc
+;
 
-: vmloc-from-bits ( <5/6bit code> -- vmloc )
-		vmloc %allot \ 5/6bit loc
+\ sets vmloc to a new value
+: vmloc-from-bits ( <5/6bit code> vmloc -- vmloc )
+		vmloc-clear \ 5/6bit loc
 		swap \ loc 5/6bit
 		\ REGISTER
 		dup 0x07 <= if \ 5/6bit 0x07 <=

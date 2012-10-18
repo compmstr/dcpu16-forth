@@ -1,5 +1,6 @@
 needs shorts.fs
 needs util.fs
+needs types.fs
 
 0x10000 short-array vm_ram
 
@@ -9,6 +10,9 @@ wvariable VM_PC
 wvariable VM_SP
 wvariable VM_EX
 wvariable VM_IA
+
+create vmloc_a vmloc %allot drop
+create vmloc_b vmloc %allot drop
 
 : clear-registers ( -- ) \ set all registers to 0
 		0 vm_registers 8 shorts erase

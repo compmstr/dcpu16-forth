@@ -9,8 +9,8 @@ create test-loc vmloc %allot drop
 : test-loc-store
 		LOC_REG test-loc vmloc-type w!
 		REG_A test-loc vmloc-register w!
-		15 REG_A reg-set
-		20 test-loc vmloc-set
+		#15 REG_A reg-set
+		#20 test-loc vmloc-set
 		REG_A reg-get .
 ;
 
@@ -28,6 +28,12 @@ create test-code
 0x84c3 cw, \ SUB I, 1
 0x80d3 cw, \ IFN I, 0
 0xb781 cw, \ SET PC, loop
+\ test ops
+0xc001 cw, \ set A, 0x10
+0x7c21 cw, 0x0020 cw, \ set B, 0x20
+0x0022 cw, \ ADD B, A --> 0x30
+0x0026 cw, \ DIV B, A --> 0x3
+0x0024 cw, \ MUL B, A --> 0x30
 
 variable test-code-len
 cw,-len @ test-code-len !
@@ -78,7 +84,7 @@ cw,-len @ test-code-len !
 ;
 
 : encode-word ( a b op -- val )
-		swap 5 lshift + \ a b/op
-		swap 10 lshift + \ a/b/op
+		swap #5 lshift + \ a b/op
+		swap #10 lshift + \ a/b/op
 ;
 

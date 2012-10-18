@@ -9,12 +9,12 @@ needs ops.fs
 
 : get-code-word-a ( word -- a )
 		\ top 6 bits
-		10 rshift
+		#10 rshift
 ;
 
 : get-code-word-b ( word -- b )
 		\ 2nd 5 bits from bottom
-		5 rshift
+		#5 rshift
 		0x1F and
 ;
 
@@ -25,12 +25,12 @@ needs ops.fs
 		get-next-word \ word
 		dup 0x0000 <> if
 			dup get-code-word-a \ word a-code
-			vmloc-from-bits \ word a-loc
+			vmloc_a vmloc-from-bits \ word a-loc
 			\ ." A: " dump-vmloc cr
 			over dup get-code-word-op \ word a-loc word op
 			swap get-code-word-b \ word a-loc op b-code
 			swap OP_SPECIAL <> if \ if op isn't special/0
-					vmloc-from-bits \ get b, otherwise it's the special op
+					vmloc_b vmloc-from-bits \ get b, otherwise it's the special op
 					\ ." B: " dump-vmloc cr
 			then
 			\ word a b

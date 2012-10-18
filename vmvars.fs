@@ -10,6 +10,10 @@ wvariable VM_SP
 wvariable VM_EX
 wvariable VM_IA
 
+: clear-registers ( -- ) \ set all registers to 0
+		0 vm_registers 8 shorts erase
+;
+
 : reg-get ( register -- n )
 		vm_registers w@
 ;

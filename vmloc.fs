@@ -128,7 +128,7 @@ end-struct vmloc
 						reg-get \ val loc regval
 						swap \ val regval loc
 						vmloc-loc w@ \ val regval ramloc
-						ram-get + \ val regval+ramloc
+						+ \ val regval+ramloc
 						ram-set
 				endof
 				LOC_LITERAL of

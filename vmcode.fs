@@ -34,8 +34,8 @@ needs ops.fs
 					\ ." B: " dump-vmloc cr
 			then
 			\ word a b
-			rot dup \ a b word word
-			\ ." Op: " get-code-word-op . cr
+			rot \ a b word
+			\ dup ." Op: " get-code-word-op . cr
 	else
 		VM_PC- \ set PC back one
 	then

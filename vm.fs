@@ -15,11 +15,19 @@ create test-loc vmloc %allot drop
 ;
 
 create test-code
-0x7c01 cw, 0x0030 cw,
-0x7fc1 cw, 0x0020 cw, 0x1000 cw,
-0x7803 cw, 0x1000 cw,
-0xc013 cw,
-0x7f80 cw, 0x0020 cw,
+0x7c01 cw, 0x0030 cw, \ set A, 0x30
+0x7fc1 cw, 0x0020 cw, 0x1000 cw, \ SET [0x1000], 0x20
+0x7803 cw, 0x1000 cw, \ SUB A, [0x1000]
+0xc013 cw, \ IFN A, 0x10
+0x7f80 cw, 0x0020 cw, \ SET PC, end(0x20)
+\ loop
+0xa8c1 cw, \ SET I, 10
+0x7c01 cw, 0x2000 cw, \ SET A, 0x2000
+\ :loop -- 0x0D
+0x22c1 cw, 0x2000 cw, \ SET [0x2000+I], [A]
+0x84c3 cw, \ SUB I, 1
+0x80d3 cw, \ IFN I, 0
+0xb781 cw, \ SET PC, loop
 
 variable test-code-len
 cw,-len @ test-code-len !
@@ -33,33 +41,11 @@ cw,-len @ test-code-len !
 
 : vm-init ( -- )
 		load-test-code
+		clear-registers
 		0 VM_PC w!
 		0xFFFF VM_SP w!
 		0 VM_EX w!
 		0 VM_IA w!
-;
-
-: run-special-word ( a op -- )
-		case
-				OP_JSR of
-				endof
-				OP_INT of
-				endof
-				OP_IAG of
-				endof
-				OP_IAS of
-				endof
-				OP_RFI of
-				endof
-				OP_IAQ of
-				endof
-				OP_HWN of
-				endof
-				OP_HWQ of
-				endof
-				OP_HWI of
-				endof
-		endcase
 ;
 
 \ Standard opcodes

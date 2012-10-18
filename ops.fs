@@ -8,20 +8,20 @@ needs specialops.fs
 		\ b is the new code op
 		special-ops-xt @
 		0 over = if
-				." Special opcode not implemented"
+				." Special opcode not implemented" cr
 		else
 				execute
 		then
 ;
 : run-OP_SET ( a b -- ) \ a -> b
-		." OP_SET"
+		." OP_SET" cr
 		swap vmloc-get \ b a-val
 		swap vmloc-set \ a-val b vmloc-set
 ;
 : run-OP_ADD ( a b -- )
 ;
 : run-OP_SUB ( a b -- ) \ b-a -> b -- EX is 0xFFFF if underflow, 0 otherwise
-		." OP_SUB cr
+		." OP_SUB" cr
 		swap over vmloc-get \ b a b-val
 		swap vmloc-get \ b b-val a-val
 		- \ b b-a

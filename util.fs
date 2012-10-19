@@ -23,3 +23,11 @@
 		swap cells + \ index in, address out
 ;
 
+: not ( t/f -- f/t )
+		if
+				#0
+		else
+				#1
+		then
+;
+

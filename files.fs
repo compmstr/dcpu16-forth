@@ -12,6 +12,7 @@ create file-line-buffer max-line 2 + allot
 		to fd-out
 ;
 : read-input-line ( -- count eof )
+		file-line-buffer max-line erase
 		file-line-buffer max-line fd-in read-line throw
 ;
 

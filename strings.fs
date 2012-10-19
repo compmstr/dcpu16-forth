@@ -24,6 +24,7 @@ copy-string
 #10 constant newline-char
 \ bl is space
 
+\ check if character is tab, newline, space
 : whitespace? ( c -- t/f )
 		dup tab-char = \ c t/f
 		over newline-char = or \ c t/f
@@ -31,3 +32,6 @@ copy-string
 		swap drop \ t/f
 ;
 
+: null? ( c -- t/f )
+		0 =
+;

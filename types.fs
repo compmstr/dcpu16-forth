@@ -11,3 +11,4 @@ struct
 		\ Value for literals
 		short% field vmloc-val
 end-struct vmloc
+

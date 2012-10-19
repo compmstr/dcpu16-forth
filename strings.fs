@@ -7,11 +7,39 @@
 		swap \ loc new-loc+1 count
 		move
 ;
-( s" hello there"
-dup allocate throw
--rot 2 pick \ new-loc loc size new-loc
-copy-string
+\ allocate and copy string over
+: save-string ( loc count -- new-loc )
+		dup allocate throw
+		-rot 2 pick
+		copy-string
+;
+
+
+\ turn a counted string (pointer to <loc> <string> ), into a loc count pair
+: get-counted-string ( loc -- loc count )
+		dup 1+ swap \ loc+1 loc
+		c@ \ loc+1 count
+;
+
+\ generates a hash for a string
+\ djb2 algorithm:
+(
+	hash_i = hash_i-1 * 33 ^ str[i]
 )
+: hash-string ( loc len -- hash )
+		#5381 \ loc len init
+		swap 0 do \ loc init len 0 do
+				\ loc hash_i-1
+				over i + c@ \ loc hash_i-1 [loc+i]
+				swap dup \ loc c hash hash
+				5 lshift \ loc c hash hash<<5
+				+ + \ loc hash hash<<5 + c +
+				0xFFFF and \ limit to a word
+		loop
+		\ drop location
+		swap drop
+;
+
 \ prints a <count> <string> string
 : print-string ( loc -- )
 		\ get count

@@ -1,0 +1,7 @@
+SET A, 0x30
+SET [0x1000], 0x20
+SUB A, [0x1000]
+IFN A, 0x10
+SET PC, end
+
+:end

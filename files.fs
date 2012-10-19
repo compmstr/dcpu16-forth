@@ -11,3 +11,7 @@ create file-line-buffer max-line 2 + allot
 		create-file throw 
 		to fd-out
 ;
+: read-input-line ( -- count eof )
+		file-line-buffer max-line fd-in read-line throw
+;
+

@@ -31,3 +31,7 @@
 		then
 ;
 
+: struct-size ( align size -- size )
+		swap drop
+;
+

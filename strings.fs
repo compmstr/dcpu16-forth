@@ -1,3 +1,4 @@
+needs util.fs
 
 \ copy the string at loc to a count-prefixed string at new-loc
 : copy-string ( loc count new-loc -- )
@@ -86,3 +87,39 @@
 		drop
 ;
 
+: starts-with ( loc-n count-n loc-h -- t/f)
+		swap 0 do \ loc-n loc-h
+				over i + c@ \ loc-n loc-h c-n
+				over i + c@ \ loc-n loc-h c-n c-h
+				<> if
+						2drop 0 leave
+				then
+		loop
+		\ if it's not false, set to true
+		0 over <> if
+			2drop 1
+		then
+;
+
+: starts-with-cstring ( needle haystack -- t/f )
+		get-counted-string drop \ needle h-loc
+		swap get-counted-string rot \ n-loc n-count h-loc
+		starts-with
+;
+
+s" 0x" save-string constant hex-start
+: starts-with-hex-start ( loc -- t/f )
+		hex-start get-counted-string rot starts-with
+;
+
+\ returns true if string has only digits and/or begins with 0X
+: string-number? ( loc count -- t/f )
+		over starts-with-hex-start if
+				\ eat 2 chars, and reduce count
+				2 - swap 2 + swap
+		then
+		0 do \ loc
+				i over + c@ \ loc char
+		loop
+;
+		

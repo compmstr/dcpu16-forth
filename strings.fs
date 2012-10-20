@@ -63,3 +63,26 @@
 : null? ( c -- t/f )
 		0 =
 ;
+
+: upper-diff
+		[char] a [char] A -
+;
+
+\ sets all chars in string provided to be upper case
+: upper-case ( loc count -- )
+		0 do
+				i over + \ loc loc+i
+				dup c@ \ loc loc+i [loc+i]
+				dup [char] a >= \ loc loc+i [loc+i] >='a'
+				over [char] z <= and \ loc loc+i char >='a'&<='z'
+				if \ loc loc+i char
+						upper-diff - \ loc loc+i CHAR
+						swap c!
+				else
+						2drop
+				then
+		loop
+		\ drop loc
+		drop
+;
+

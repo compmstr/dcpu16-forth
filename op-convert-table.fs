@@ -23,10 +23,13 @@ op-convert-table @ op-convert struct-size 0x20 * erase
 		get-counted-string \ table loc count
 		begin
 				2 pick op-name @ \ table loc count op-name
+				0 over = if
+						2drop 2drop 0
+						exit
+				then
 				get-counted-string
 				2over \ table loc count op-loc op-count loc count
-				compare \ table loc count flag
-				3 pick op-name @ 0 <> and \ table loc count flag
+				compare \ table loc count (t/f op == cur)
 		while \ table loc count
 						rot op-convert struct-size + -rot
 		repeat

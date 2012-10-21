@@ -120,6 +120,11 @@ s" 0x" save-string constant hex-start
 		then
 		0 do \ loc
 				i over + c@ \ loc char
+				dup [char] 0 >= \ loc char >=0
+				swap [char] 9 <= and
+				not if
+						drop 0 leave
+				then
 		loop
 ;
 		

@@ -64,13 +64,37 @@ variable file-line-pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
 
-: value-register?
+: tokenvalue-LOC_REG?
 ;
-: value-register-mem?
+: tokenvalue-LOC_MEM?
 ;
-: value-register-mem-offset?
+: tokenvalue-LOC_REG_MEM?
+;
+: tokenvalue-LOC_REG_MEM_OFFSET?
+;
+: tokenvalue-LOC_LITERAL?
+;
+: tokenvalue-LOC_SP?
+;
+: tokenvalue-LOC_PC?
+;
+: tokenvalue-LOC_EX?
+;
+: tokenvalue-LOC_IA?
+;
+: tokenvalue-LOC_PUSHPOP?
+;
+: tokenvalue-LOC_PEEK?
+;
+: tokenvalue-LOC_PICK?
+;
+: tokenvalue-LOC_LABEL?
 ;
 
+\ takes a token, and returns a LOC_ constant for the type of value
+: tokenvalue-type ( loc size -- LOC_... )
+
+;
 
 \ returns the a or b of a line of code (consumes next token)
 : get-line-value ( loc size -- vmloc )

@@ -154,3 +154,48 @@ s" 0x" save-string constant hex-start
 		evaluate
 ;
 
+\ takes off the first and last chars of a string
+: string-strip-ends ( loc count -- loc count )
+		2 - \ loc count-2
+		2dup over \ loc count loc count loc
+		1+ -rot \ loc count loc+1 loc count
+		cmove
+;
+
+\ finds first instance of the char passed in in a string
+\   returns -1 if not found
+: string-first-instance ( loc count char -- idx )
+		-1 swap \ loc count -1(flag) char
+		rot 0 do \ loc flag char
+				2 pick i + c@ \ loc flag char [loc+i]
+				over = if
+						swap drop i swap \ loc i char
+						leave
+				then
+		loop
+		drop \ drop off char
+		swap drop \ drop off loc
+;
+
+\ returns 2 strings, before delim, and after delim
+\   if char not found, returns empty (length 0) string for 2nd string
+\ s" i+1000" 2dup char + string-split
+\   cr type bl emit type cr -> 1000 i
+: string-split ( loc count char -- loc0 count0 loc1 count1 )
+		2 pick 2 pick rot \ loc count loc count char
+		string-first-instance \ loc count idx
+		dup -1 = if \ loc count idx
+				\ character not found...
+				drop 
+				2dup + 0 \ loc count loc+count 0
+		else
+				\ copy loc/count to return stack
+				-rot 2dup 2>r rot \ loc count idx
+				swap drop dup \ loc count0(idx) idx
+				2r> \ loc count0 idx loc count
+				rot 1+ \ .. loc count idx+1
+				swap over - \ .. loc idx count-idx
+				-rot + swap \ .. loc+idx count-idx
+		then
+;
+

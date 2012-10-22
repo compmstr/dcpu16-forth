@@ -51,9 +51,10 @@ variable file-line-pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
 
-: get-b ( -- vmloc )
+: get-special-op ( loc size -- code )
 ;
-: get-a ( -- vmloc )
+\ returns the a or b of a line of code
+: get-line-value ( loc size -- vmloc )
 ;
 \ store encoded op at next spot in code-buffer,
 \   increment code-buffer-pos
@@ -101,13 +102,23 @@ variable file-line-pos
 				else
 						2dup
 						find-op \ loc size op
-						-rot \ op loc size
-						2dup
-						get-b
-						-rot \ op b loc size
-						get-a
-						-rot \ op b a
-						encode-op \ hex-code
+						0 over = if
+								\ special op
+								drop \ loc size
+								2dup get-special-op
+								-rot \ spc-op loc size
+								get-line-value \ spc-op a
+								encode-special-op \ hex-code
+						else
+								\ standard op
+								-rot \ op loc size
+								2dup
+								get-line-value
+								-rot \ op b loc size
+								get-line-value
+								-rot \ op b a
+								encode-op \ hex-code
+						then
 				then
 		then
 ;

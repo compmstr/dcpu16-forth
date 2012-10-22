@@ -70,6 +70,7 @@ needs util.fs
 ;
 
 : upper-case-char ( char -- CHAR )
+		\ could also use non-standard 'toupper'
 		dup [char] a >= \ char >=a
 		over [char] z <= and \ char lower?
 		if

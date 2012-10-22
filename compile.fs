@@ -64,36 +64,118 @@ variable file-line-pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
 
+\ All of these: ( loc count -- t/f )
 : tokenvalue-LOC_REG?
+		\ check if it's one char
+		1 = if
+				c@ false \ char false
+				over [char] A = or
+				over [char] B = or
+				over [char] C = or
+				over [char] X = or
+				over [char] Y = or
+				over [char] Z = or
+				over [char] I = or
+				over [char] J = or
+		else
+				false
+		then
+		swap drop
 ;
 : tokenvalue-LOC_MEM?
+		2dup square-bracketed?
+		-rot
+		string-strip-ends
+		string-number? and
 ;
 : tokenvalue-LOC_REG_MEM?
+		2dup square-bracketed?
+		-rot
+		string-strip-ends
+		tokenvalue-LOC_REG? and
 ;
 : tokenvalue-LOC_REG_MEM_OFFSET?
+		2dup square-bracketed?
+		-rot
+		string-strip-ends
+		2dup
+		[char] + string-contains?
+		-rot \ brackets? contains? loc count
+		[char] + string-split
+		dup 1 = if
+				\ if first one is register (1 char) ...
+				tokenvalue-LOC_REG? -rot
+				string-number?
+		else
+				string-number? -rot
+				tokenvalue-LOC_REG?
+		then \ brackets? contains? num? reg? <or reg? num?>
+		and and and
 ;
 : tokenvalue-LOC_LITERAL?
+		string-number?
 ;
 : tokenvalue-LOC_SP?
+		s" SP" compare 0 =
 ;
 : tokenvalue-LOC_PC?
+		s" PC" compare 0 =
 ;
 : tokenvalue-LOC_EX?
-;
-: tokenvalue-LOC_IA?
+		s" EX" compare 0 =
 ;
 : tokenvalue-LOC_PUSHPOP?
+		2dup
+		s" PUSH" compare 0 =
+		-rot
+		s" POP" compare 0 = or
 ;
 : tokenvalue-LOC_PEEK?
+		s" PEEK" compare 0 =
 ;
 : tokenvalue-LOC_PICK?
+		s" PICK" compare 0 =
 ;
-: tokenvalue-LOC_LABEL?
-;
+create tokentype-checks
+' TOKENVALUE-LOC_REG? , LOC_REG ,
+' TOKENVALUE-LOC_MEM? , LOC_MEM ,
+' TOKENVALUE-LOC_REG_MEM? , LOC_REG_MEM ,
+' TOKENVALUE-LOC_REG_MEM_OFFSET? , LOC_REG_MEM_OFFSET ,
+' TOKENVALUE-LOC_LITERAL? , LOC_LITERAL ,
+' TOKENVALUE-LOC_SP? , LOC_SP ,
+' TOKENVALUE-LOC_PC? , LOC_PC ,
+' TOKENVALUE-LOC_EX? , LOC_EX ,
+' TOKENVALUE-LOC_PUSHPOP? , LOC_PUSHPOP ,
+' TOKENVALUE-LOC_PEEK? , LOC_PEEK ,
+' TOKENVALUE-LOC_PICK? , LOC_PICK ,
+0 ,
 
 \ takes a token, and returns a LOC_ constant for the type of value
+\ returns -1 on no type found
 : tokenvalue-type ( loc size -- LOC_... )
-
+		\ if ends with comma, drop comma
+		2dup last-char [char] , = if
+				1-
+		then
+		tokentype-checks -rot \ checks loc size
+		begin
+				2dup 4 pick \ checks loc size(x2) checks
+				@ execute \ checks loc size type?
+				if
+						2drop 1 cells + @
+						\ flag to leave loop
+						true
+				else
+						rot 2 cells + \ loc size next_entry
+						dup @ 0 = if \ if the next entry = 0
+								drop 2drop
+								-1 true \ exit loop, leaving -1 on stack
+						else
+								-rot
+								false \ continue loop
+						then
+				then
+		until
 ;
 
 \ returns the a or b of a line of code (consumes next token)
@@ -102,6 +184,8 @@ variable file-line-pos
 \ store encoded op at next spot in code-buffer,
 \   increment code-buffer-pos
 : encode-op ( op a b -- )
+;
+: encode-special-op ( op a -- )
 ;
 
 : is-token-comment ( loc size -- loc size t/f )

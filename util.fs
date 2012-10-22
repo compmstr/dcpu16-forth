@@ -35,3 +35,11 @@
 		swap drop
 ;
 
+: as-bool ( flag -- true/false )
+		if
+				true
+		else
+				false
+		then
+;
+

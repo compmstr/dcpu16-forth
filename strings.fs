@@ -90,6 +90,20 @@ needs util.fs
 		drop
 ;
 
+: first-char ( loc count -- c )
+		drop c@
+;
+
+: last-char ( loc count -- c)
+		1- + c@
+;
+\ returns true if string is surrounded by [ and ]
+: square-bracketed? ( loc count -- t/f )
+		2dup first-char [char] [ =
+		-rot
+		last-char [char] ] = and
+;
+
 : starts-with ( loc-n count-n loc-h -- t/f)
 		swap 0 do \ loc-n loc-h
 				over i + c@ \ loc-n loc-h c-n
@@ -110,9 +124,13 @@ needs util.fs
 		starts-with
 ;
 
-s" 0x" save-string constant hex-start
 : starts-with-hex-start? ( loc -- t/f )
-		hex-start get-counted-string rot starts-with
+		dup c@ [char] 0 = swap \ =0 loc
+		1+ \ =0 loc+1
+		c@ \ =0 char
+		[char] x over = \ =0 char =x
+		swap [char] X = or
+		and
 ;
 
 : decimal-digit? ( char -- t/f )
@@ -149,6 +167,7 @@ s" 0x" save-string constant hex-start
 						drop 0 leave
 				then
 		loop
+		swap drop as-bool
 ;
 
 : string->number ( loc count -- number )
@@ -179,6 +198,10 @@ s" 0x" save-string constant hex-start
 		loop
 		drop \ drop off char
 		swap drop \ drop off loc
+;
+
+: string-contains? ( loc count char -- t/f )
+		string-first-instance -1 <>
 ;
 
 \ returns 2 strings, before delim, and after delim

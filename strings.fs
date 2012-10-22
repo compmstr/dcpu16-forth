@@ -151,7 +151,10 @@ s" 0x" save-string constant hex-start
 ;
 
 : string->number ( loc count -- number )
-		evaluate
+		\ evaluate
+		\ try to convert the number
+		s>number? drop \ drop flag, it will just return 0
+		d>s
 ;
 
 \ takes off the first and last chars of a string

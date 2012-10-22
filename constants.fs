@@ -21,6 +21,7 @@
 #10 constant LOC_PUSHPOP
 #11 constant LOC_PEEK
 #12 constant LOC_PICK
+#13 constant LOC_LABEL
 
 \ Standard opcodes
 0x00 constant OP_SPECIAL

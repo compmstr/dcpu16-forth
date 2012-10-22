@@ -12,6 +12,19 @@ struct
 		cell% field label-next
 end-struct code-label
 
+struct
+		\ one of the LOC_... constants
+		short% field lineval-type
+		\ Register to use
+		short% field lineval-register
+		\ Ram location to use (or offset)
+		short% field lineval-loc
+		\ Literal value to use
+		short% field lineval-val
+		\ String to use to look up label
+		cell% field lineval-label
+end-struct lineval
+
 variable labels-head
 0 labels-head !
 
@@ -51,9 +64,15 @@ variable file-line-pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
 
-: get-special-op ( loc size -- code )
+: value-register?
 ;
-\ returns the a or b of a line of code
+: value-register-mem?
+;
+: value-register-mem-offset?
+;
+
+
+\ returns the a or b of a line of code (consumes next token)
 : get-line-value ( loc size -- vmloc )
 ;
 \ store encoded op at next spot in code-buffer,
@@ -101,11 +120,11 @@ variable file-line-pos
 						store-label
 				else
 						2dup
-						find-op \ loc size op
+						op-table find-op \ loc size op
 						0 over = if
 								\ special op
 								drop \ loc size
-								2dup get-special-op
+								2dup special-op-table find-op
 								-rot \ spc-op loc size
 								get-line-value \ spc-op a
 								encode-special-op \ hex-code

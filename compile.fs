@@ -4,6 +4,7 @@ needs files.fs
 needs shorts.fs
 needs strings.fs
 needs util.fs
+needs op-convert-table.fs
 
 struct
 		cell% field label-name \ pointer to counted string
@@ -50,8 +51,6 @@ variable file-line-pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
 
-: get-op ( loc len -- op-code ) \ token string -> op-code
-;
 : get-b ( -- vmloc )
 ;
 : get-a ( -- vmloc )
@@ -100,10 +99,15 @@ variable file-line-pos
 				is-token-label if
 						store-label
 				else
-						get-op \ expects a token
+						2dup
+						find-op \ loc size op
+						-rot \ op loc size
+						2dup
 						get-b
+						-rot \ op b loc size
 						get-a
-						encode-op
+						-rot \ op b a
+						encode-op \ hex-code
 				then
 		then
 ;

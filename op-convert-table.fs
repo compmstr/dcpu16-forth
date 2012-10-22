@@ -18,9 +18,8 @@ op-convert-table @ op-convert struct-size 0x20 * erase
 		op-convert struct-size + \ loc (next index)
 ;
 
-: find-op ( cstring -- code/0 )
-		op-convert-table @ swap \ table cstring
-		get-counted-string \ table loc count
+: find-op ( loc len -- code/0 )
+		op-convert-table @ -rot \ table loc count
 		begin
 				2 pick op-name @ \ table loc count op-name
 				0 over = if

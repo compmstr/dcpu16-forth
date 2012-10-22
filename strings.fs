@@ -69,19 +69,21 @@ needs util.fs
 		[char] a [char] A -
 ;
 
+: upper-case-char ( char -- CHAR )
+		dup [char] a >= \ char >=a
+		over [char] z <= and \ char lower?
+		if
+				upper-diff -
+		then
+;
+
 \ sets all chars in string provided to be upper case
 : upper-case ( loc count -- )
 		0 do
 				i over + \ loc loc+i
 				dup c@ \ loc loc+i [loc+i]
-				dup [char] a >= \ loc loc+i [loc+i] >='a'
-				over [char] z <= and \ loc loc+i char >='a'&<='z'
-				if \ loc loc+i char
-						upper-diff - \ loc loc+i CHAR
-						swap c!
-				else
-						2drop
-				then
+				upper-case-char \ loc loc+i CHAR
+				swap c! \ loc
 		loop
 		\ drop loc
 		drop
@@ -108,23 +110,47 @@ needs util.fs
 ;
 
 s" 0x" save-string constant hex-start
-: starts-with-hex-start ( loc -- t/f )
+: starts-with-hex-start? ( loc -- t/f )
 		hex-start get-counted-string rot starts-with
 ;
 
+: decimal-digit? ( char -- t/f )
+		dup [char] 0 >=
+		swap [char] 9 <= and
+;
+: hex-digit? ( char -- t/f )
+		dup decimal-digit?
+		swap upper-case-char \ 0-9? CHAR
+		dup [char] A >=
+		swap [char] F <= and \ 0-9? A-F?
+		or
+;
+
+
 \ returns true if string has only digits and/or begins with 0X
 : string-number? ( loc count -- t/f )
-		over starts-with-hex-start if
+		over starts-with-hex-start? dup if \ loc count hex? 
+				-rot \ hex? loc count
 				\ eat 2 chars, and reduce count
 				2 - swap 2 + swap
+		else
+				-rot \ hex? loc count
 		then
-		0 do \ loc
-				i over + c@ \ loc char
-				dup [char] 0 >= \ loc char >=0
-				swap [char] 9 <= and
+		0 do \ hex? loc
+				i over + c@ \ hex? loc char
+				\ if this is a hex number, check for a hex digit
+				2 pick if \ hex? loc char
+						hex-digit? \ hex? loc hex-digit?
+				else
+						decimal-digit? \ hex? loc digit?
+				then
 				not if
 						drop 0 leave
 				then
 		loop
 ;
-		
+
+: string->number ( loc count -- number )
+		evaluate
+;
+

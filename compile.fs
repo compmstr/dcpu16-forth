@@ -50,7 +50,7 @@ struct
 		\ Literal value to use
 		short% field tokenval-val
 		\ String to use to look up label
-		cell% field tokenval-label
+		cell% field tokenval-labelname
 end-struct tokenval
 
 struct
@@ -241,9 +241,6 @@ create tokenval-sizers
 		2drop drop -1
 ;
 
-: replace-loc_labels  
-;
-
 : get-next-code-entry ( codelistentry -- <next codelistentry> ) codelistentry-next @ ;
 
 : set-code-entry-label-pos ( code-pos code-entry -- code-pos code-entry )
@@ -274,6 +271,54 @@ create tokenval-sizers
 						get-next-code-entry
 		repeat
 		2drop
+;
+
+\ set a label type tokenval to a literal one
+: replace-tokenval-label ( tokenval -- )
+		dup tokenval-type @
+		LOC_LABEL over <> if
+				drop exit
+		then
+
+		dup tokenval-labelname @ \ val labelname
+		find-label \ val label
+		-1 over if
+				." Error, label not found: "
+				dup tokenval-labelname @ print-string cr
+				abort
+		then
+		swap \ label val
+		LOC_LITERAL over tokenval-type w! \ label val
+		0 over tokenval-labelname w!
+		tokenval-val w!
+;
+
+: replace-loc_labels  ( -- )
+		\ TODO fixme
+		code-list @ \ <first code entry>
+		\ break" replacing labels"
+		begin
+				0 over <> while
+						\ get entry's type
+						dup codelistentry-type w@ \ entry type
+						case
+								CODELISTENTRY-TYPE_OP of
+										\ check if aval is label
+										dup codelistentry-aval @
+										replace-tokenval-label
+										\ check if bval is label
+										codelistentry-bval @
+										replace-tokenval-label
+								endof
+								CODELISTENTRY-TYPE_SPECIAL-OP of
+										\ check if aval is label
+										codelistentry-aval @
+										replace-tokenval-label
+								endof
+						endcase
+						get-next-code-entry
+		repeat
+		drop
 ;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace
@@ -502,7 +547,7 @@ create tokentype-checks
 : tokenvalue-get-LOC_LABEL
 		2 pick tokenval-type LOC_LABEL swap w!
 		save-string
-		over tokenval-label !
+		over tokenval-labelname !
 ;
 create tokenvalue-getters
 ' TOKENVALUE-GET-LOC_REG ,

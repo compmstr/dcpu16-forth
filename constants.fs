@@ -17,11 +17,11 @@
 #6  constant LOC_SP
 #7  constant LOC_PC
 #8  constant LOC_EX
-#9  constant LOC_IA
-#10 constant LOC_PUSHPOP
-#11 constant LOC_PEEK
-#12 constant LOC_PICK
-#13 constant LOC_LABEL
+#9  constant LOC_PUSHPOP
+#10 constant LOC_PEEK
+#11 constant LOC_PICK
+#12 constant LOC_LABEL
+#13 constant LOC_IA
 
 \ Standard opcodes
 0x00 constant OP_SPECIAL

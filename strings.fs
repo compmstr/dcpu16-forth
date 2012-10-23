@@ -185,6 +185,11 @@ needs util.fs
 		cmove
 ;
 
+\ gets a string with the first and last char not seen
+: string-without-ends ( loc count -- loc count )
+		2 - swap 1 + swap
+;
+
 \ finds first instance of the char passed in in a string
 \   returns -1 if not found
 : string-first-instance ( loc count char -- idx )

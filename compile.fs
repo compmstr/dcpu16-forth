@@ -14,16 +14,33 @@ end-struct code-label
 
 struct
 		\ one of the LOC_... constants
-		short% field lineval-type
+		short% field tokenval-type
 		\ Register to use
-		short% field lineval-register
+		short% field tokenval-register
 		\ Ram location to use (or offset)
-		short% field lineval-loc
+		short% field tokenval-loc
 		\ Literal value to use
-		short% field lineval-val
+		short% field tokenval-val
 		\ String to use to look up label
-		cell% field lineval-label
-end-struct lineval
+		cell% field tokenval-label
+end-struct tokenval
+
+struct
+		cell% field codelist-op
+		cell% field codelist-bval
+		cell% field codelist-aval
+		cell% field codelist-next
+end-struct codelist
+
+struct
+		cell% field codelist-special-op
+		cell% field codelist-special-aval
+		cell% field codelist-special-next
+end-struct codelist-special
+
+: clear-tokenval ( tokenval -- tokenval )
+		dup tokenval swap drop erase
+;
 
 variable labels-head
 0 labels-head !
@@ -85,19 +102,21 @@ variable file-line-pos
 : tokenvalue-LOC_MEM?
 		2dup square-bracketed?
 		-rot
-		string-strip-ends
+		2 pick not if 2drop exit then
+		string-without-ends
 		string-number? and
 ;
 : tokenvalue-LOC_REG_MEM?
 		2dup square-bracketed?
 		-rot
-		string-strip-ends
+		string-without-ends
 		tokenvalue-LOC_REG? and
 ;
 : tokenvalue-LOC_REG_MEM_OFFSET?
+		dup 2 <= if 2drop false exit then
 		2dup square-bracketed?
 		-rot
-		string-strip-ends
+		string-without-ends
 		2dup
 		[char] + string-contains?
 		-rot \ brackets? contains? loc count
@@ -169,7 +188,7 @@ create tokentype-checks
 						rot 2 cells + \ loc size next_entry
 						dup @ 0 = if \ if the next entry = 0
 								drop 2drop
-								-1 true \ exit loop, leaving -1 on stack
+								LOC_LABEL true \ exit loop, leaving LOC_LABEL on stack
 						else
 								-rot
 								false \ continue loop
@@ -178,8 +197,110 @@ create tokentype-checks
 		until
 ;
 
+: char->reg ( char -- reg_... )
+		dup [char] A = if drop REG_A exit then
+		dup [char] B = if drop REG_B exit then
+		dup [char] C = if drop REG_C exit then
+		dup [char] X = if drop REG_X exit then
+		dup [char] Y = if drop REG_Y exit then
+		dup [char] Z = if drop REG_Z exit then
+		dup [char] I = if drop REG_I exit then
+		dup [char] J = if drop REG_J exit then
+;
+
+\ All of these: ( tokenval loc count -- tokenvalue )
+: tokenvalue-get-LOC_REG
+		." LOC_REG GET" cr
+		2 pick tokenval-type LOC_REG swap w!
+		drop c@ char->reg
+		over tokenval-register w!
+;
+: tokenvalue-get-LOC_MEM
+		." LOC_MEM GET" cr
+		2 pick tokenval-type LOC_MEM swap w!
+		string-without-ends string->number
+		over tokenval-loc w!
+;
+: tokenvalue-get-LOC_REG_MEM
+		." LOC_REG_MEM GET" cr
+		2 pick tokenval-type LOC_REG_MEM swap w!
+		string-without-ends drop c@ char->reg
+		over tokenval-register w!
+		
+;
+: tokenvalue-get-LOC_REG_MEM_OFFSET
+		." LOC_REG_MEM_OFFSET GET" cr
+		2 pick tokenval-type LOC_REG_MEM_OFFSET swap w!
+		string-without-ends
+		[char] + string-split
+		dup 1 = if
+				\ top of stack is register (1 char):
+				drop c@ char->reg
+				-rot
+				\ get offset
+				string->number \ tokenval reg offset
+		else
+				string->number \ tokenval loc count offset
+				-rot
+				drop c@ char->reg \ tokenval offset reg
+				swap
+		then \ tokenval reg offset
+		2 pick tokenval-loc w! 
+		over tokenval-register w!
+;
+: tokenvalue-get-LOC_LITERAL
+		." LOC_LITERAL GET" cr
+		2 pick tokenval-type LOC_LITERAL swap w!
+		string->number
+		over tokenval-val w!
+;
+: tokenvalue-get-LOC_SP
+		." LOC_SP GET" cr
+		2 pick tokenval-type LOC_SP swap w!
+;
+: tokenvalue-get-LOC_PC
+		." LOC_PC GET" cr
+		2 pick tokenval-type LOC_PC swap w!
+;
+: tokenvalue-get-LOC_EX
+		." LOC_EX GET" cr
+		2 pick tokenval-type LOC_EX swap w!
+;
+: tokenvalue-get-LOC_PUSHPOP
+		." LOC_PUSHPOP GET" cr
+		2 pick tokenval-type LOC_PUSHPOP swap w!
+;
+: tokenvalue-get-LOC_PEEK
+		." LOC_PEEK GET" cr
+		2 pick tokenval-type LOC_PEEK swap w!
+;
+: tokenvalue-get-LOC_PICK
+		." LOC_PICK GET" cr
+		2 pick tokenval-type LOC_PICK swap w!
+;
+: tokenvalue-get-LOC_LABEL
+		." LOC_LABEL GET" cr
+		2 pick tokenval-type LOC_LABEL swap w!
+;
+create tokenvalue-getters
+' TOKENVALUE-GET-LOC_REG ,
+' TOKENVALUE-GET-LOC_MEM ,
+' TOKENVALUE-GET-LOC_REG_MEM ,
+' TOKENVALUE-GET-LOC_REG_MEM_OFFSET ,
+' TOKENVALUE-GET-LOC_LITERAL ,
+' TOKENVALUE-GET-LOC_SP ,
+' TOKENVALUE-GET-LOC_PC ,
+' TOKENVALUE-GET-LOC_EX ,
+' TOKENVALUE-GET-LOC_PUSHPOP ,
+' TOKENVALUE-GET-LOC_PEEK ,
+' TOKENVALUE-GET-LOC_PICK ,
+
 \ returns the a or b of a line of code (consumes next token)
-: get-line-value ( loc size -- vmloc )
+: get-token-value ( tokenval loc size -- tokenval )
+		rot clear-tokenval -rot
+		2dup tokenvalue-type \ loc size type
+		tokenvalue-getters swap 1- \ loc size getters type-1
+		cells + @ execute \ getters[type-1] execute
 ;
 \ store encoded op at next spot in code-buffer,
 \   increment code-buffer-pos
@@ -234,15 +355,15 @@ create tokentype-checks
 								drop \ loc size
 								2dup special-op-table find-op
 								-rot \ spc-op loc size
-								get-line-value \ spc-op a
+								get-token-value \ spc-op a
 								encode-special-op \ hex-code
 						else
 								\ standard op
 								-rot \ op loc size
 								2dup
-								get-line-value
+								get-token-value
 								-rot \ op b loc size
-								get-line-value
+								get-token-value
 								-rot \ op b a
 								encode-op \ hex-code
 						then

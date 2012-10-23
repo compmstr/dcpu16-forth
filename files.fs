@@ -16,3 +16,8 @@ create file-line-buffer max-line 2 + allot
 		file-line-buffer max-line fd-in read-line throw
 ;
 
+: close-input ( -- )
+		fd-in close-file throw
+;
+
+

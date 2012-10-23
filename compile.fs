@@ -6,17 +6,45 @@ needs strings.fs
 needs util.fs
 needs op-convert-table.fs
 
+0x0 constant CODELISTENTRY-TYPE_OP
+0x1 constant CODELISTENTRY-TYPE_SPECIAL-OP
+0x2 constant CODELISTENTRY-TYPE_LABEL
+0x3 constant CODELISTENTRY-TYPE_DATA
+
+0x10000 short-array code-buffer
+variable code-buffer-pos
+0 code-buffer-pos !
+
+variable file-line-pos
+0 file-line-pos !
+
+variable code-labels
+0 code-labels !
+
 struct
-		cell% field label-name \ pointer to counted string
-		short% field label-pos
-		cell% field label-next
-end-struct code-label
+		cell% field codelistentry-type
+		cell% field codelistentry-op
+		cell% field codelistentry-bval
+		cell% field codelistentry-aval
+		\ pointer to entry in code-labels list
+		cell% field codelistentry-label
+		\ counted array of data to copy over verbatim
+		cell% field codelistentry-data
+		\ how many words this code entry is into the code stream
+		cell% field codelistentry-codeloc
+		cell% field codelistentry-next
+end-struct codelistentry
+
+variable code-list
+0 code-list !
+variable code-list-end
+0 code-list-end !
 
 struct
 		\ one of the LOC_... constants
 		short% field tokenval-type
 		\ Register to use
-		short% field tokenval-register
+		short% field tokenval-reg
 		\ Ram location to use (or offset)
 		short% field tokenval-loc
 		\ Literal value to use
@@ -26,31 +54,209 @@ struct
 end-struct tokenval
 
 struct
-		cell% field codelist-op
-		cell% field codelist-bval
-		cell% field codelist-aval
-		cell% field codelist-next
-end-struct codelist
+		cell% field label-name \ pointer to counted string
+		short% field label-pos
+		cell% field label-next
+end-struct code-label
 
-struct
-		cell% field codelist-special-op
-		cell% field codelist-special-aval
-		cell% field codelist-special-next
-end-struct codelist-special
+: dump-tokenval ( tokenval -- dokenval )
+		dup tokenval swap drop dump
+;
 
 : clear-tokenval ( tokenval -- tokenval )
 		dup tokenval swap drop erase
 ;
 
-variable labels-head
-0 labels-head !
+\ all of these: ( tokenval -- size )
+: tokenval-size-LOC_REG drop 0 ;
+: tokenval-size-LOC_MEM drop 1 ;
+: tokenval-size-LOC_REG_MEM drop 0 ;
+: tokenval-size-LOC_REG_MEM_OFFSET drop 1 ;
+: tokenval-size-LOC_LITERAL
+		dup tokenval-val w@ 0x20 < if
+				drop 0
+		else
+				drop 1
+		then
+;
+: tokenval-size-LOC_SP drop 0 ;
+: tokenval-size-LOC_PC drop 0 ;
+: tokenval-size-LOC_EX drop 0 ;
+: tokenval-size-LOC_PUSHPOP drop 0 ;
+: tokenval-size-LOC_PEEK drop 0 ;
+: tokenval-size-LOC_PICK drop 1 ;
+: tokenval-size-LOC_LABEL drop 1 ;
 
-0x10000 short-array code-buffer
-variable code-buffer-pos
-0 code-buffer-pos !
+create tokenval-sizers
+' tokenval-size-LOC_REG ,
+' tokenval-size-LOC_MEM ,
+' tokenval-size-LOC_REG_MEM ,
+' tokenval-size-LOC_REG_MEM_OFFSET ,
+' tokenval-size-LOC_LITERAL ,
+' tokenval-size-LOC_SP ,
+' tokenval-size-LOC_PC ,
+' tokenval-size-LOC_EX ,
+' tokenval-size-LOC_PUSHPOP ,
+' tokenval-size-LOC_PEEK ,
+' tokenval-size-LOC_PICK ,
+' tokenval-size-LOC_LABEL ,
 
-variable file-line-pos
-0 file-line-pos !
+\ returns the size in words of a token val
+\   either 0 or 1
+: get-tokenval-size ( tokenval -- size )
+		dup tokenval-type w@ 1- cells \ tokenval (type-1 cells)
+		tokenval-sizers + @
+		0 over <> if
+				execute
+		else
+				." Invalid token type (no size function"
+				abort
+		then
+;
+
+\ gets the size of a code list entry, for ops, size is 1-3, for labels, 0
+\   for data, 0+
+: get-codelistentry-size ( codelistentry -- size )
+		case dup codelistentry-type @
+				codelistentry-type_op of
+						dup codelistentry-aval @ get-tokenval-size
+						swap codelistentry-bval @ get-tokenval-size
+						+ 1+
+				endof
+				codelistentry-type_special-op of
+						codelistentry-aval @ get-tokenval-size
+						1+
+				endof
+				codelistentry-type_label of
+						drop 0
+				endof
+				codelistentry-type_data of
+						\ TODO
+				endof
+		endcase
+;
+
+: get-codelistentry ( -- loc )
+		codelistentry %alloc
+		dup codelistentry swap drop erase
+;
+
+: dump-codelistentry ( loc -- loc )
+		dup codelistentry swap drop dump
+;
+
+: dump-codelistentry-op ( loc -- loc )
+		cr ." Code List Entry: " cr
+		dump-codelistentry cr
+		." B: " cr
+		dup codelistentry-bval @ dump-tokenval drop cr
+		." A: " cr
+		dup codelistentry-aval @ dump-tokenval drop cr
+;
+
+\ free the memory allocated for a codelistentry
+: empty-codelistentry ( entry -- )
+		case dup codelistentry-type
+				CODELISTENTRY-TYPE_OP of
+						\ free a, b
+						dup codelistentry-aval free
+						dup codelistentry-bval free
+				endof
+				CODELISTENTRY-TYPE_SPECIAL-OP of
+						\ free a
+						dup codelistentry-aval free
+				endof
+				CODELISTENTRY-TYPE_DATA of
+						\ free data
+						dup codelistentry-data free
+				endof
+		endcase
+;
+
+: empty-codelist ( -- )
+		\ only do this if list isn't empty
+		0 code-list = not if
+				code-list @
+				dup empty-codelistentry
+				dup codelistentry-next @ \ cur next
+				swap free \ next
+		then
+		0 code-list !
+		0 code-list-end !
+;
+
+: add-to-codelist ( codelistentry -- )
+		\ first entry being added
+		code-list @ 0 = if
+				dup code-list !
+				code-list-end !
+		else
+				dup \ entry entry
+				\ get the current last item
+				code-list-end @ \ entry entry last
+				codelistentry-next !
+				\ update the end of the list
+				code-list-end !
+		then
+;
+
+: get-next-code-entry ( codelistentry -- <next codelistentry> ) codelistentry-next @ ;
+
+: set-code-entry-label-pos ( code-pos code-entry -- code-pos code-entry )
+		\ only do something if this is a label
+		CODELISTENTRY-TYPE_LABEL over codelistentry-type @ = if
+				\ get the label
+				dup codelistentry-label @ \ pos entry label
+				0 over <> if
+						2 pick swap label-pos w! \ pos entry
+				else
+						drop
+				then
+		then
+;
+
+\ runs through the code list, and sets the codeloc for each entry
+: set-codelist-codelocs ( -- ) 
+		0 code-list @ \ <size> <first code entry>
+		begin
+				0 over <> while
+						\ set entry's loc
+						2dup codelistentry-codeloc !
+						set-code-entry-label-pos
+						\ add entry's size
+						dup get-codelistentry-size \ accum entry size
+						rot + swap \ accum+size entry
+						\ get next entry
+						get-next-code-entry
+		repeat
+		2drop
+;
+
+: store-label ( loc size -- codelistentry )
+		\ strip off the :
+		swap 1+ swap 1- \ loc+1 size-1
+		\ store the next token as a label
+		dup allocate throw \ loc size new-loc
+		-rot 2 pick \ new-loc loc size new-loc
+		copy-string \ new-loc
+
+		code-label %alloc \ new-loc label-loc
+		dup label-name \ new-loc label-loc label-name
+		rot \ label-loc label-name new-loc
+		swap ! \ label-loc
+
+		\ to start with, the label position will be 0
+		0 over label-pos ! \ label-loc
+
+		code-labels @ \ label-loc code-labels
+		over label-next ! \ label-loc
+		dup code-labels ! \ label-loc
+		\ TODO: Create codelistentry
+		get-codelistentry >r \ label-loc codelistentry
+		CODELISTENTRY-TYPE_LABEL r@ codelistentry-type !
+		r@ codelistentry-label !
+		r>
+;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace
 		begin
@@ -63,7 +269,7 @@ variable file-line-pos
 		repeat
 ;
 
-: get-next-token ( -- loc count ) \ find the next whitespace delimited token in the file line
+: get-next-token ( -- loc count ) \ find the next whitespace/null delimited token in the file line
 		eat-whitespace \ clear out any leading whitespace
 		\ store the loc and the initial size
 		file-line-pos @ file-line-buffer + \ file-line-buffer+pos
@@ -83,6 +289,7 @@ variable file-line-pos
 
 \ All of these: ( loc count -- t/f )
 : tokenvalue-LOC_REG?
+		\ ." LOC_REG?: " 2dup type cr
 		\ check if it's one char
 		1 = if
 				c@ false \ char false
@@ -100,6 +307,7 @@ variable file-line-pos
 		swap drop
 ;
 : tokenvalue-LOC_MEM?
+		\ ." LOC_MEM? " 2dup type cr
 		2dup square-bracketed?
 		-rot
 		2 pick not if 2drop exit then
@@ -107,12 +315,14 @@ variable file-line-pos
 		string-number? and
 ;
 : tokenvalue-LOC_REG_MEM?
+		\ ." LOC_REG_MEM? " 2dup type cr
 		2dup square-bracketed?
 		-rot
 		string-without-ends
 		tokenvalue-LOC_REG? and
 ;
 : tokenvalue-LOC_REG_MEM_OFFSET?
+		\ ." LOC_REG_MEM_OFFSET? " 2dup type cr
 		dup 2 <= if 2drop false exit then
 		2dup square-bracketed?
 		-rot
@@ -210,26 +420,22 @@ create tokentype-checks
 
 \ All of these: ( tokenval loc count -- tokenvalue )
 : tokenvalue-get-LOC_REG
-		." LOC_REG GET" cr
 		2 pick tokenval-type LOC_REG swap w!
 		drop c@ char->reg
-		over tokenval-register w!
+		over tokenval-reg w!
 ;
 : tokenvalue-get-LOC_MEM
-		." LOC_MEM GET" cr
 		2 pick tokenval-type LOC_MEM swap w!
 		string-without-ends string->number
 		over tokenval-loc w!
 ;
 : tokenvalue-get-LOC_REG_MEM
-		." LOC_REG_MEM GET" cr
 		2 pick tokenval-type LOC_REG_MEM swap w!
 		string-without-ends drop c@ char->reg
-		over tokenval-register w!
+		over tokenval-reg w!
 		
 ;
 : tokenvalue-get-LOC_REG_MEM_OFFSET
-		." LOC_REG_MEM_OFFSET GET" cr
 		2 pick tokenval-type LOC_REG_MEM_OFFSET swap w!
 		string-without-ends
 		[char] + string-split
@@ -246,41 +452,39 @@ create tokentype-checks
 				swap
 		then \ tokenval reg offset
 		2 pick tokenval-loc w! 
-		over tokenval-register w!
+		over tokenval-reg w!
 ;
 : tokenvalue-get-LOC_LITERAL
-		." LOC_LITERAL GET" cr
 		2 pick tokenval-type LOC_LITERAL swap w!
 		string->number
 		over tokenval-val w!
 ;
 : tokenvalue-get-LOC_SP
-		." LOC_SP GET" cr
 		2 pick tokenval-type LOC_SP swap w!
 ;
 : tokenvalue-get-LOC_PC
-		." LOC_PC GET" cr
-		2 pick tokenval-type LOC_PC swap w!
+		2drop \ tokenval
+		LOC_PC over tokenval-type w!
 ;
 : tokenvalue-get-LOC_EX
-		." LOC_EX GET" cr
 		2 pick tokenval-type LOC_EX swap w!
 ;
 : tokenvalue-get-LOC_PUSHPOP
-		." LOC_PUSHPOP GET" cr
 		2 pick tokenval-type LOC_PUSHPOP swap w!
 ;
 : tokenvalue-get-LOC_PEEK
-		." LOC_PEEK GET" cr
 		2 pick tokenval-type LOC_PEEK swap w!
 ;
 : tokenvalue-get-LOC_PICK
-		." LOC_PICK GET" cr
 		2 pick tokenval-type LOC_PICK swap w!
+		\ get the next token (pick's n)
+		get-next-token string->number
+		over tokenval-loc w!
 ;
 : tokenvalue-get-LOC_LABEL
-		." LOC_LABEL GET" cr
 		2 pick tokenval-type LOC_LABEL swap w!
+		save-string
+		over tokenval-label !
 ;
 create tokenvalue-getters
 ' TOKENVALUE-GET-LOC_REG ,
@@ -294,13 +498,21 @@ create tokenvalue-getters
 ' TOKENVALUE-GET-LOC_PUSHPOP ,
 ' TOKENVALUE-GET-LOC_PEEK ,
 ' TOKENVALUE-GET-LOC_PICK ,
+' TOKENVALUE-GET-LOC_LABEL ,
 
 \ returns the a or b of a line of code (consumes next token)
 : get-token-value ( tokenval loc size -- tokenval )
+		." get-token-value: " 2dup type cr
 		rot clear-tokenval -rot
 		2dup tokenvalue-type \ loc size type
 		tokenvalue-getters swap 1- \ loc size getters type-1
-		cells + @ execute \ getters[type-1] execute
+		cells + @
+		0 over <> if
+				execute \ getters[type-1] execute
+		else
+				." Invalid token type (no getter)"
+				abort
+		then
 ;
 \ store encoded op at next spot in code-buffer,
 \   increment code-buffer-pos
@@ -309,63 +521,99 @@ create tokenvalue-getters
 : encode-special-op ( op a -- )
 ;
 
-: is-token-comment ( loc size -- loc size t/f )
+: is-line-blank ( loc size -- loc size t/f )
+		\ if the size is 0, line is blank
+		0 over = if
+				true exit
+		then
+		2dup
+		true -rot \ loc size true loc size
+		0 do \ true loc
+				dup i + c@
+				whitespace? not if
+						swap drop false swap
+						leave
+				then
+		loop
+		drop \ drop location
+;
+
+: is-line-comment ( loc size -- loc size t/f )
 		over c@
 		[char] ; =
 ;
-: is-token-label ( loc size -- loc size t/f )
+: is-line-label ( loc size -- loc size t/f )
 		over c@
 		[char] : = 
 ;
-: store-label ( loc size -- )
-		\ strip off the :
-		swap 1+ swap 1- \ loc+1 size-1
-		\ store the next token as a label
-		dup allocate throw \ loc size new-loc
-		-rot 2 pick \ new-loc loc size new-loc
-		copy-string \ new-loc
-
-		code-label %alloc \ new-loc label-loc
-		dup label-name \ new-loc label-loc label-name
-		rot \ label-loc label-name new-loc
-		swap ! \ label-loc
-
-		code-buffer-pos @ \ label-loc code-pos
-		over label-pos ! \ label-loc
-
-		labels-head @ \ label-loc labels-head
-		over label-next ! \ label-loc
-		labels-head !
+: is-line-dat ( loc size -- loc size t/f )
+		2dup drop
+		s" DAT" rot
+		starts-with
 ;
 
-: process-line ( u2 -- )
+: process-op ( loc size -- codelistentry )
+		\ break:
+		op-table find-op \ op
+		0 over = if
+				\ special op
+				drop \ loc size
+				special-op-table find-op \ spc-op
+				get-next-token \ spc-op loc size
+				tokenval %alloc -rot \ spc-op tokenval loc size
+				get-token-value \ spc-op a
+				get-codelistentry \ spc-op a codelistentry
+				\ store a copy in the return stack
+				dup >r \ spc-op a codelistentry
+				CODELISTENTRY-TYPE_SPECIAL-OP over codelistentry-type !
+				codelistentry-aval ! \ spc-op
+				\ copy loc off return stack
+				r@ \ spc-op codelistentry
+				codelistentry-op !
+				r>
+		else
+				\ standard op
+				get-next-token \ op loc size
+				tokenval %alloc -rot \ op tokenval(b) loc size
+				get-token-value \ op b
+				get-next-token \ op b loc size
+				tokenval %alloc -rot \ op b tokenval(a) loc size
+				get-token-value \ op b a
+				get-codelistentry \ op b a codelistentry(cle)
+				CODELISTENTRY-TYPE_OP over codelistentry-type !
+				dup >r \ op b a cle
+				codelistentry-aval !
+				r@
+				codelistentry-bval !
+				r@
+				codelistentry-op !
+				r>
+		then
+;
+
+: process-dat ( loc size -- codelistentry )
+		\ TODO
+;
+
+: process-line ( u2 -- <codelistentry or 0> )
 		0 file-line-pos !
 		." Processing line: "
 		file-line-buffer over type cr
+		drop \ don't need the length after this
 		get-next-token \ loc size
-		is-token-comment if
+		is-line-comment >r \ loc size
+		is-line-blank r> \ loc size blank? comment?
+		or if
+				\ skip
+				2drop 0
 		else
-				is-token-label if
+				is-line-label if
 						store-label
 				else
-						2dup
-						op-table find-op \ loc size op
-						0 over = if
-								\ special op
-								drop \ loc size
-								2dup special-op-table find-op
-								-rot \ spc-op loc size
-								get-token-value \ spc-op a
-								encode-special-op \ hex-code
+						is-line-dat if
+								process-dat
 						else
-								\ standard op
-								-rot \ op loc size
-								2dup
-								get-token-value
-								-rot \ op b loc size
-								get-token-value
-								-rot \ op b a
-								encode-op \ hex-code
+								process-op
 						then
 				then
 		then
@@ -377,6 +625,36 @@ create tokenvalue-getters
 				read-input-line
 		while \ while eats the EOF flag
 						process-line
+						\ if we have a codelistentry to add, add it
+						0 over <> if
+								add-to-codelist
+						else
+								drop \ get rid of the 0
+						then
 		repeat
+		drop \ drop last 0
+		close-input
+		\ calculate the code locations
+		set-codelist-codelocs
+		\ replace all of the locations set to labels with the label's position
+		replace-loc_labels
 ;
+
+: test-compile
+		s" test.dasm"
+		compile-file
+;
+
+: test-by-line
+		s" test.dasm"
+		open-input
+		read-input-line drop
+		process-line
+;
+
+: test-next-line
+		read-input-line drop
+		process-line
+;
+
 

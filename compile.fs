@@ -200,6 +200,50 @@ create tokenval-sizers
 		then
 ;
 
+: store-label ( loc size -- codelistentry )
+		\ strip off the :
+		swap 1+ swap 1- \ loc+1 size-1
+		save-string \ string
+
+		code-label %alloc \ string label-loc
+		dup label-name \ string label-loc label-name
+		rot \ label-loc label-name string
+		swap ! \ label-loc
+
+		\ to start with, the label position will be 0
+		0 over label-pos ! \ label-loc
+
+		code-labels @ \ label-loc code-labels
+		over label-next ! \ label-loc
+		dup code-labels ! \ label-loc
+		\ TODO: Create codelistentry
+		get-codelistentry >r \ label-loc codelistentry
+		CODELISTENTRY-TYPE_LABEL r@ codelistentry-type !
+		r@ codelistentry-label !
+		r>
+;
+
+: get-next-label ( label -- <next label> ) label-next @ ;
+
+\ looks for a label by name, returns -1 if none found
+: find-label ( search-string -- label-loc )
+		get-counted-string \ search-loc search-size
+		code-labels @ \ sloc ssize label
+		begin 0 over <> while
+						dup >r
+						label-name @ get-counted-string \ sloc ssize lloc lsize
+						2over
+						compare 0= if \ sloc ssize
+								2drop r> exit
+						then
+						r> get-next-label
+		repeat
+		2drop drop -1
+;
+
+: replace-loc_labels  
+;
+
 : get-next-code-entry ( codelistentry -- <next codelistentry> ) codelistentry-next @ ;
 
 : set-code-entry-label-pos ( code-pos code-entry -- code-pos code-entry )
@@ -230,32 +274,6 @@ create tokenval-sizers
 						get-next-code-entry
 		repeat
 		2drop
-;
-
-: store-label ( loc size -- codelistentry )
-		\ strip off the :
-		swap 1+ swap 1- \ loc+1 size-1
-		\ store the next token as a label
-		dup allocate throw \ loc size new-loc
-		-rot 2 pick \ new-loc loc size new-loc
-		copy-string \ new-loc
-
-		code-label %alloc \ new-loc label-loc
-		dup label-name \ new-loc label-loc label-name
-		rot \ label-loc label-name new-loc
-		swap ! \ label-loc
-
-		\ to start with, the label position will be 0
-		0 over label-pos ! \ label-loc
-
-		code-labels @ \ label-loc code-labels
-		over label-next ! \ label-loc
-		dup code-labels ! \ label-loc
-		\ TODO: Create codelistentry
-		get-codelistentry >r \ label-loc codelistentry
-		CODELISTENTRY-TYPE_LABEL r@ codelistentry-type !
-		r@ codelistentry-label !
-		r>
 ;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace

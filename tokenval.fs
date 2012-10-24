@@ -117,10 +117,6 @@ create tokentype-checks
 \ takes a token, and returns a LOC_ constant for the type of value
 \ returns -1 on no type found
 : tokenvalue-type ( loc size -- LOC_... )
-		\ if ends with comma, drop comma
-		2dup last-char [char] , = if
-				1-
-		then
 		tokentype-checks -rot \ checks loc size
 		begin
 				2dup 4 pick \ checks loc size(x2) checks
@@ -179,37 +175,58 @@ create tokenval-sizers
 ' tokenval-size-LOC_PICK ,
 ' tokenval-size-LOC_LABEL ,
 
+\ returns the size in words of a token val
+\   either 0 or 1
+: get-tokenval-size ( tokenval -- size )
+		dup tokenval-type w@ 1- cells \ tokenval (type-1 cells)
+		tokenval-sizers + @
+		0 over <> if
+				execute
+		else
+				." Invalid token type (no size function)"
+				abort
+		then
+;
+
 \ all of these ( a-mode tokenval -- word [word] count )
 \ count is either 0 or 1, if there's an extra word
 : tokenval-encode-LOC_REG
+		." encode-loc_reg" cr
 		swap drop tokenval-reg w@ 0
 ;
 : tokenval-encode-LOC_MEM
+		." encode-loc_mem" cr
 		swap drop tokenval-loc w@ \ loc
 		0x1e swap \ 0x1e loc
 		1
 ;
 : tokenval-encode-LOC_REG_MEM
+		." encode-loc_reg_mem" cr
 		swap drop tokenval-reg w@ 0x08 + 0
 ;
 : tokenval-encode-LOC_REG_MEM_OFFSET
+		." encode-loc_reg_mem_offset" cr
 		swap drop dup \ loc loc
 		tokenval-reg w@ 0x10 + \ loc 0x10+reg
 		swap tokenval-loc w@ \ reg loc
 		1
 ;
 : tokenval-encode-LOC_LITERAL
+		." encode-loc_literal" cr
 		tokenval-val w@ \ a-mode val
-		swap over 0x20 < and if \ val
+		swap over 0x20 \ val a-mode val 0x20
+		< and if \ val
 				0x20 + 0 \ val+0x20 0
 		else
 				0x1f swap 1 \ 0x1f val 1
 		then
 ;
 : tokenval-encode-LOC_SP
+		." encode-loc_sp" cr
 		2drop 0x1b 0
 ;
 : tokenval-encode-LOC_PC
+		." encode-loc_pc" cr
 		2drop 0x1c 0
 ;
 : tokenval-encode-LOC_EX
@@ -227,8 +244,9 @@ create tokenval-sizers
 		0x1a swap 1 \ 0x1a loc 1
 ;
 : tokenval-encode-LOC_LABEL
+		." encode-loc_label" cr
 		swap drop
-		tokenval-loc w@ 0x1f swap \ 0x1f(literal) loc
+		tokenval-val w@ 0x1f swap \ 0x1f(literal) loc
 		1
 ;
 create tokenval-encoders
@@ -246,22 +264,9 @@ create tokenval-encoders
 ' tokenval-encode-LOC_LABEL ,
 
 : encode-tokenval ( tokenval -- word [word] count[0/1] )
-		dup tokenval-type w@ cells
+		dup tokenval-type w@ 1- cells
 		tokenval-encoders + @
 		execute
-;
-
-\ returns the size in words of a token val
-\   either 0 or 1
-: get-tokenval-size ( tokenval -- size )
-		dup tokenval-type w@ 1- cells \ tokenval (type-1 cells)
-		tokenval-sizers + @
-		0 over <> if
-				execute
-		else
-				." Invalid token type (no size function"
-				abort
-		then
 ;
 
 \ All of these: ( tokenval loc count -- tokenvalue )
@@ -292,6 +297,7 @@ create tokenval-encoders
 				\ get offset
 				string->number \ tokenval reg offset
 		else
+				\ top of stack is number
 				string->number \ tokenval loc count offset
 				-rot
 				drop c@ char->reg \ tokenval offset reg
@@ -350,6 +356,7 @@ create tokenvalue-getters
 : get-token-value ( tokenval loc size -- tokenval )
 		." get-token-value: " 2dup type cr
 		rot clear-tokenval -rot
+		remove-trailing-comma
 		2dup tokenvalue-type \ loc size type
 		tokenvalue-getters swap 1- \ loc size getters type-1
 		cells + @

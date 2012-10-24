@@ -1,7 +1,36 @@
+; basic ops
 SET A, 0x30
 SET [0x1000], 0x20
 SUB A, [0x1000]
 IFN A, 0x10
 SET PC, end
+
+; do a loopy thing
+SET I, 10
+SET A, 0x2000
+:loop
+SET [0x2000+I], [A]
+SUB I, 1
+IFN I, 0
+SET PC, loop
+
+; Test ops
+SET A, 0x10
+SET B, 0x20
+ADD B, A
+; 0x30
+DIV B, A
+; 0x3
+MUL B, A
+; 0x30
+
+;Call a subroutine
+;SET X, 0x4
+;JSR testsub
+;SET PC, end
+;
+;:testsub
+;SHL X, 4
+;SET PC, POP
 
 :end

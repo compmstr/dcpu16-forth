@@ -231,3 +231,8 @@ needs util.fs
 		then
 ;
 
+: remove-trailing-comma ( loc count -- loc count )
+		2dup last-char [char] , = if
+				1-
+		then
+;

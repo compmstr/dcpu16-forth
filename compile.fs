@@ -8,9 +8,25 @@ needs op-convert-table.fs
 needs tokenval.fs
 needs codelistentry.fs
 
-0x10000 short-array code-buffer
+variable code-buffer
+0 code-buffer !
 variable code-buffer-pos
 0 code-buffer-pos !
+: free-code-buffer
+		0 code-buffer @ <> if
+				code-buffer @ free throw
+				0 code-buffer !
+				0 code-buffer-pos !
+		then
+;
+: alloc-code-buffer ( size -- )
+		shorts allocate throw code-buffer !
+		0 code-buffer-pos !
+;
+: append-to-code-buffer ( short -- )
+		code-buffer @ code-buffer-pos @ shorts + !
+		1 code-buffer-pos +!
+;
 
 variable code-labels
 0 code-labels !
@@ -28,11 +44,11 @@ end-struct code-label
 
 : empty-codelist ( -- )
 		\ only do this if list isn't empty
-		0 code-list = not if
+		0 code-list @ = not if
 				code-list @
 				dup empty-codelistentry
 				dup codelistentry-next @ \ cur next
-				swap free \ next
+				swap free throw \ next
 		then
 		0 code-list !
 		0 code-list-end !
@@ -123,7 +139,7 @@ end-struct code-label
 						\ get next entry
 						get-next-code-entry
 		repeat
-		swap drop \ size
+		drop \ size
 ;
 
 \ set a label type tokenval to a literal one
@@ -140,7 +156,8 @@ end-struct code-label
 				dup tokenval-labelname @ print-string cr
 				abort
 		then
-		swap \ label val
+		label-pos w@ \ val label-pos
+		swap \ label-pos val
 		\ leave the type as label, just set the value
 		tokenval-val w!
 ;
@@ -169,13 +186,6 @@ end-struct code-label
 						get-next-code-entry
 		repeat
 		drop
-;
-
-\ store encoded op at next spot in code-buffer,
-\   increment code-buffer-pos
-: encode-op ( op a b -- )
-;
-: encode-special-op ( op a -- )
 ;
 
 : is-line-blank ( loc size -- loc size t/f )
@@ -275,11 +285,32 @@ end-struct code-label
 		then
 ;
 
-: encode-codelist ( buffer -- buffer )
+: encode-codelist ( -- )
+		\ TODO dictionay gets corrupted somewhere in here
+		0 code-buffer-pos !
 		code-list @ \ first thing of code
+		>r \ store it in the return stack
+		begin
+				r@ 0 <> while 
+						r@ encode-codelistentry \ cle [word] [word] [word] count/-1
+						-1 over = if
+								drop
+						else
+								1+ 0 do \ [word] [word] word
+										append-to-code-buffer
+								loop
+						then
+						r> codelistentry-next @ >r
+		repeat
+
+		\ don't need the code-list pointer anymore
+		r> drop
 ;
 
-: compile-file ( string len -- )
+: compile-file ( fout-filename len fin-filename len -- )
+		." Compiling file: " 2dup type cr
+		\ clear out the code list if needed
+		empty-codelist
 		open-input
 		begin
 				read-input-line
@@ -299,11 +330,22 @@ end-struct code-label
 		\ replace all of the locations set to labels with the label's position
 		replace-loc_labels
 		\ allocate space for the code
-		shorts allocate throw \ code-buffer
+		free-code-buffer
+		1+ alloc-code-buffer
 		encode-codelist
+
+		\ code is compiled, write to output
+		open-output-bin
+
+		code-buffer @
+		code-buffer-pos @
+		shorts write-output-bin
+
+		close-output
 ;
 
 : test-compile
+		s" test.dbin"
 		s" test.dasm"
 		compile-file
 ;
@@ -320,3 +362,6 @@ end-struct code-label
 		process-line
 ;
 
+: dump-code-buffer
+		code-buffer @ code-buffer-pos @ shorts dump
+;

@@ -7,15 +7,50 @@ create file-line-buffer max-line 2 + allot
 variable file-line-pos
 0 file-line-pos !
 
+: is-input-open? ( -- t/f )
+		0 fd-in <>
+;
+: is-output-open? ( -- t/f )
+		0 fd-out <>
+;
+
 : open-input ( addr u -- )
-		r/o open-file throw
-		to fd-in
+		is-input-open? if
+				." Error, file already open"
+		else
+			r/o open-file throw
+			to fd-in
+		then
+;
+: open-input-bin ( addr u -- )
+		is-input-open? if
+				." Error, file already open"
+		else
+			r/o bin open-file throw
+			to fd-in
+		then
 ;
 : open-output-bin ( addr u -- )
-		w/o bin \ bin modifies w\o to make it binary
-		create-file throw 
-		to fd-out
+		is-input-open? if
+				." Error, file already open"
+		else
+			w/o bin \ bin modifies w\o to make it binary
+			create-file throw 
+			to fd-out
+		then
 ;
+: write-output-bin ( addr count -- )
+		fd-out write-file throw
+;
+
+: read-input-file ( -- buffer size-read )
+		fd-in file-size throw
+		d>s
+		dup allocate throw \ size buffer
+		dup rot \ buffer buffer size
+		fd-in read-file throw \ buffer size-read
+;
+
 : read-input-line ( -- count eof )
 		0 file-line-pos !
 		file-line-buffer max-line erase
@@ -23,7 +58,21 @@ variable file-line-pos
 ;
 
 : close-input ( -- )
-		fd-in close-file throw
+		is-input-open? if
+			fd-in close-file throw
+			0 to fd-in
+		else
+				s" Error: File not open"
+		then
+;
+
+: close-output ( -- )
+		is-output-open? if
+			fd-out close-file throw
+			0 to fd-out
+		else
+				s" Error: File not open"
+		then
 ;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace

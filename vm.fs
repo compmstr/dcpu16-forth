@@ -4,49 +4,20 @@ needs ops.fs
 needs util.fs
 needs vmloc.fs
 needs vmvars.fs
+needs files.fs
 
-create test-loc vmloc %allot drop
-: test-loc-store
-		LOC_REG test-loc vmloc-type w!
-		REG_A test-loc vmloc-register w!
-		#15 REG_A reg-set
-		#20 test-loc vmloc-set
-		REG_A reg-get .
-;
-
-create test-code
-0x7c01 cw, 0x0030 cw, \ set A, 0x30
-0x7fc1 cw, 0x0020 cw, 0x1000 cw, \ SET [0x1000], 0x20
-0x7803 cw, 0x1000 cw, \ SUB A, [0x1000]
-0xc013 cw, \ IFN A, 0x10
-0x7f80 cw, 0x0020 cw, \ SET PC, end(0x20)
-\ loop
-0xa8c1 cw, \ SET I, 10
-0x7c01 cw, 0x2000 cw, \ SET A, 0x2000
-\ :loop -- 0x0D
-0x22c1 cw, 0x2000 cw, \ SET [0x2000+I], [A]
-0x84c3 cw, \ SUB I, 1
-0x80d3 cw, \ IFN I, 0
-0xb781 cw, \ SET PC, loop
-\ test ops
-0xc001 cw, \ set A, 0x10
-0x7c21 cw, 0x0020 cw, \ set B, 0x20
-0x0022 cw, \ ADD B, A --> 0x30
-0x0026 cw, \ DIV B, A --> 0x3
-0x0024 cw, \ MUL B, A --> 0x30
-
-variable test-code-len
-cw,-len @ test-code-len !
-
-: load-test-code ( -- )
-		test-code-len @ 0 do
-				test-code i shorts + w@
+: load-code-from-file ( string count -- )
+		open-input-bin
+		read-input-file \ buffer size
+		2 / \ convert size to shorts
+		0 do
+				dup i shorts + w@
 				i ram-set
 		loop
+		free drop \ don't need buffer anymore
 ;
 
 : vm-init ( -- )
-		load-test-code
 		clear-registers
 		0 VM_PC w!
 		0xFFFF VM_SP w!
@@ -86,5 +57,42 @@ cw,-len @ test-code-len !
 : encode-word ( a b op -- val )
 		swap #5 lshift + \ a b/op
 		swap #10 lshift + \ a/b/op
+;
+
+create test-code
+0x7c01 cw, 0x0030 cw, \ set A, 0x30
+0x7fc1 cw, 0x0020 cw, 0x1000 cw, \ SET [0x1000], 0x20
+0x7803 cw, 0x1000 cw, \ SUB A, [0x1000]
+0xc013 cw, \ IFN A, 0x10
+0x7f81 cw, 0x0020 cw, \ SET PC, end(0x20)
+\ loop
+0xa8c1 cw, \ SET I, 10
+0x7c01 cw, 0x2000 cw, \ SET A, 0x2000
+\ :loop -- 0x0D
+0x22c1 cw, 0x2000 cw, \ SET [0x2000+I], [A]
+0x84c3 cw, \ SUB I, 1
+0x80d3 cw, \ IFN I, 0
+0xb781 cw, \ SET PC, loop
+\ test ops
+0xc001 cw, \ set A, 0x10
+0x7c21 cw, 0x0020 cw, \ set B, 0x20
+0x0022 cw, \ ADD B, A --> 0x30
+0x0026 cw, \ DIV B, A --> 0x3
+0x0024 cw, \ MUL B, A --> 0x30
+
+variable test-code-len
+cw,-len @ test-code-len !
+
+: load-test-code ( -- )
+		test-code-len @ 0 do
+				test-code i shorts + w@
+				i ram-set
+		loop
+;
+
+: run-test-file ( -- )
+		s" test.dbin" load-code-from-file
+		vm-init
+		vm-run
 ;
 

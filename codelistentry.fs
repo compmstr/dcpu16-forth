@@ -78,16 +78,43 @@ end-struct codelistentry
 		endcase
 ;
 
-( codelistentry -- word [word] [word] count )
+variable codelistentry-encode-accum
+variable codelistentry-encode-size
+
+( codelistentry -- [wordb] [worda] baseword count )
 \ count is 0, 1, or 2 for number of extra words
 \ words are encoded word, extra word1, extra word2
 : codelistentry-encode-OP
+		>r \ store codelistentry on return stack
+		\ set up local vars
+		0 codelistentry-encode-accum !
+		0 codelistentry-encode-size !
+
 		\ encode op
-		dup codelistentry-aval @
-		\ encode a
-		encode-tokenval
+		r@ codelistentry-op w@ codelistentry-encode-accum !
 		\ encode b
-		\ combine first word
+		r@ codelistentry-bval @ \ bval
+		false swap encode-tokenval \ bword [bword1] count
+		1 = if \ .. bword [bword1]
+				1 codelistentry-encode-size +!
+				swap
+		then \ .. bword
+		#5 lshift codelistentry-encode-accum @ +
+		0xFFFF and codelistentry-encode-accum !
+
+		\ encode a
+		r@ codelistentry-aval @ \ [bword] aval
+		true swap encode-tokenval \ [bword] aword [aword1] count
+		1 = if \ [bword] aword [aword1]
+				1 codelistentry-encode-size +!
+				swap
+		then \ [bword] [aword1] aword
+		#10 lshift codelistentry-encode-accum @ +
+		0xFFFF and
+		\ [bword] [aword] baseword
+		codelistentry-encode-size @
+		\ get rid of stored codelistentry
+		r> drop
 ;
 : codelistentry-encode-SPECIAL-OP
 		\ encode a
@@ -95,6 +122,7 @@ end-struct codelistentry
 		\ combine
 ;
 : codelistentry-encode-LABEL
+		drop -1
 ;
 : codelistentry-encode-DATA
 ;
@@ -103,4 +131,13 @@ create codelistentry-encoders
 ' codelistentry-encode-SPECIAL-OP ,
 ' codelistentry-encode-LABEL ,
 ' codelistentry-encode-DATA ,
+
+( codelistentry -- word [word] [word] count )
+\ if -1 is returned, don't output any code
+: encode-codelistentry
+		codelistentry-encoders
+		over codelistentry-type @
+		cells + @
+		execute
+;
 

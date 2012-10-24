@@ -753,9 +753,21 @@ create tokenvalue-getters
 		then
 ;
 
+( codelistentry -- word [word] [word] count )
+\ count is 0, 1, or 2 for number of extra words
+\ words are encoded word, extra word1, extra word2
 : codelistentry-encode-OP
+		\ encode op
+		dup codelistentry-aval @
+		\ encode a
+		encode-tokenval
+		\ encode b
+		\ combine first word
 ;
 : codelistentry-encode-SPECIAL-OP
+		\ encode a
+		\ encode op
+		\ combine
 ;
 : codelistentry-encode-LABEL
 ;

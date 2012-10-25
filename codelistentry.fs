@@ -61,19 +61,23 @@ end-struct codelistentry
 
 \ free the memory allocated for a codelistentry
 : empty-codelistentry ( entry -- )
-		case dup codelistentry-type
+		case dup codelistentry-type @
 				CODELISTENTRY-TYPE_OP of
 						\ free a, b
-						dup codelistentry-aval free
-						dup codelistentry-bval free
+						dup codelistentry-aval @ free throw
+						codelistentry-bval @ free throw
 				endof
 				CODELISTENTRY-TYPE_SPECIAL-OP of
 						\ free a
-						dup codelistentry-aval free
+						codelistentry-aval @ free throw
 				endof
 				CODELISTENTRY-TYPE_DATA of
 						\ free data
-						dup codelistentry-data free
+						codelistentry-data @ free throw
+				endof
+				CODELISTENTRY-TYPE_LABEL of
+						\ get rid of entry
+						drop 
 				endof
 		endcase
 ;

@@ -13,6 +13,7 @@ variable code-buffer
 variable code-buffer-pos
 0 code-buffer-pos !
 : free-code-buffer
+		." Freeing code buffer"
 		0 code-buffer @ <> if
 				code-buffer @ free throw
 				0 code-buffer !
@@ -20,6 +21,7 @@ variable code-buffer-pos
 		then
 ;
 : alloc-code-buffer ( size -- )
+		." Allocating code buffer of size: " dup . cr
 		shorts allocate throw code-buffer !
 		0 code-buffer-pos !
 ;
@@ -43,15 +45,20 @@ struct
 end-struct code-label
 
 : empty-codelist ( -- )
+		.s cr
 		\ only do this if list isn't empty
-		0 code-list @ = not if
-				code-list @
-				dup empty-codelistentry
-				dup codelistentry-next @ \ cur next
-				swap free throw \ next
-		then
+		code-list @ >r
+		begin
+				0 r@ = not while
+						r@ empty-codelistentry
+						r> dup codelistentry-next @ >r
+						free throw
+		repeat
+		
+		r> drop
 		0 code-list !
 		0 code-list-end !
+		.s cr
 ;
 
 : add-to-codelist ( codelistentry -- )
@@ -305,6 +312,8 @@ end-struct code-label
 
 		\ don't need the code-list pointer anymore
 		r> drop
+		." trying to alloc"
+		2 allocate throw drop
 ;
 
 : compile-file ( fout-filename len fin-filename len -- )
@@ -334,12 +343,17 @@ end-struct code-label
 		1+ alloc-code-buffer
 		encode-codelist
 
+		." after encode-codelist"
+
 		\ code is compiled, write to output
 		open-output-bin
+		." after open-output-bin"
 
 		code-buffer @
 		code-buffer-pos @
+		." before write-output-bin"
 		shorts write-output-bin
+		." after write-output-bin"
 
 		close-output
 ;

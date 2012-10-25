@@ -25,9 +25,9 @@ MUL B, A
 ; 0x30
 
 ;Call a subroutine
-;SET X, 0x4
+SET X, 0x4
 ;JSR testsub
-;SET PC, end
+SET PC, end
 ;
 ;:testsub
 ;SHL X, 4

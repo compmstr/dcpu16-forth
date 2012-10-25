@@ -3,23 +3,31 @@ needs vmvars.fs
 needs vmloc.fs
 needs vmcode.fs
 
-: run-OP_JSR ( a op -- )
+: run-OP_JSR ( a -- ) \ push address of next instruction on stack, then set PC to a
+		." run-OP_JSR" cr
+		\ PUSH ++PC
+		\ PC has already been incremented while reading this op
+		VM_PC-get \ ++PC
+		VM_SP_PUSH
+		\ PC = A
+		vmloc-get \ aval
+		VM_PC-set
 ;
-: run-OP_INT ( a op -- )
+: run-OP_INT ( a -- )
 ;
-: run-OP_IAG ( a op -- )
+: run-OP_IAG ( a -- )
 ;
-: run-OP_IAS ( a op -- )
+: run-OP_IAS ( a -- )
 ;
-: run-OP_RFI ( a op -- )
+: run-OP_RFI ( a -- )
 ;
-: run-OP_IAQ ( a op -- )
+: run-OP_IAQ ( a -- )
 ;
-: run-OP_HWN ( a op -- )
+: run-OP_HWN ( a -- )
 ;
-: run-OP_HWQ ( a op -- )
+: run-OP_HWQ ( a -- )
 ;
-: run-OP_HWI ( a op -- )
+: run-OP_HWI ( a -- )
 ;
 
 0x20 array special-ops-xt \ operation XT, opcode is index

@@ -39,7 +39,7 @@ create vmloc_b vmloc %allot drop
   VM_EX w@
 ;
 : VM_PC-set ( val -- )
-  VM_PC w!
+		VM_PC w!
 ;
 : VM_PC-get ( -- val )
   VM_PC w@
@@ -58,12 +58,12 @@ create vmloc_b vmloc %allot drop
 ;
 
 : VM_PC+
-  VM_PC w@
-  1+ VM_PC w!
+  VM_PC-get
+  1+ VM_PC-set
 ;
 : VM_PC-
-  VM_PC w@
-  1- VM_PC w!
+  VM_PC-get
+  1- VM_PC-set
 ;
 
 : VM_SP+1 \ ( -- ) pop
@@ -85,7 +85,7 @@ create vmloc_b vmloc %allot drop
 
 : get-next-word ( -- n )
 		\ [PC++]
-		VM_PC w@ \ PC
+		VM_PC-get \ PC
 		ram-get \ [PC]
 		VM_PC+ \ increment PC
 ;

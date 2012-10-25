@@ -131,19 +131,24 @@ needs vmvars.fs
 				endof
 				LOC_SP of
 						drop \ val
-						VM_SP w!
+						VM_SP-set
 				endof
 				LOC_PC of
 						drop \ val
-						VM_PC w!
+						VM_PC-set
 				endof
 				LOC_EX of
 						drop \ val
-						VM_EX w!
+						VM_EX-set
 				endof
 				LOC_IA of
 						drop \ val
-						VM_IA w!
+						VM_IA-set
+				endof
+				LOC_PUSHPOP of
+						\ push [--SP]
+						drop \ val
+						VM_SP_PUSH
 				endof
 		endcase
 ;
@@ -176,19 +181,24 @@ needs vmvars.fs
 				endof
 				LOC_SP of
 						drop
-						VM_SP w@
+						VM_SP-get
 				endof
 				LOC_PC of
 						drop
-						VM_PC w@
+						VM_PC-get
 				endof
 				LOC_EX of
 						drop
-						VM_EX w@
+						VM_EX-get
 				endof
 				LOC_IA of
 						drop
-						VM_IA w@
+						VM_IA-get
+				endof
+				LOC_PUSHPOP of
+						\ pop [SP++]
+						drop
+						VM_SP_POP
 				endof
 		endcase
 ;

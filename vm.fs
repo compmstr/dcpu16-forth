@@ -36,22 +36,23 @@ needs files.fs
 		then
 ;
 
-: vm-step ( -- )
+\ returns true if able to run code, false if no more code
+: vm-step ( -- t/f )
 		get-next-code-word
 		0 over <> if
 				run-word
+				true
 		else
-				." No more code"
+				." No more code" cr
+				false
 		then
 ;
 
 : vm-run ( -- ) \ runs until get-next-code-word returns 0
 		begin
-				get-next-code-word dup while
-						run-word
+				vm-step while
 		repeat
 		." Done" cr
-		drop \ drop the 0 left over from get-next-code-word
 ;
 
 : encode-word ( a b op -- val )

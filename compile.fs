@@ -45,7 +45,6 @@ struct
 end-struct code-label
 
 : empty-codelist ( -- )
-		.s cr
 		\ only do this if list isn't empty
 		code-list @ >r
 		begin
@@ -58,7 +57,6 @@ end-struct code-label
 		r> drop
 		0 code-list !
 		0 code-list-end !
-		.s cr
 ;
 
 : add-to-codelist ( codelistentry -- )
@@ -312,7 +310,6 @@ end-struct code-label
 
 		\ don't need the code-list pointer anymore
 		r> drop
-		." trying to alloc"
 		2 allocate throw drop
 ;
 
@@ -343,17 +340,12 @@ end-struct code-label
 		1+ alloc-code-buffer
 		encode-codelist
 
-		." after encode-codelist"
-
 		\ code is compiled, write to output
 		open-output-bin
-		." after open-output-bin"
 
 		code-buffer @
 		code-buffer-pos @
-		." before write-output-bin"
 		shorts write-output-bin
-		." after write-output-bin"
 
 		close-output
 ;

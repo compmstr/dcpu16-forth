@@ -148,7 +148,7 @@ needs util.fs
 
 \ returns true if string has only digits and/or begins with 0X
 : string-number? ( loc count -- t/f )
-		over starts-with-hex-start? dup if \ loc count hex? 
+		over starts-with-hex-start? dup if \ loc count hex?
 				-rot \ hex? loc count
 				\ eat 2 chars, and reduce count
 				2 - swap 2 + swap
@@ -218,7 +218,7 @@ needs util.fs
 		string-first-instance \ loc count idx
 		dup -1 = if \ loc count idx
 				\ character not found...
-				drop 
+				drop
 				2dup + 0 \ loc count loc+count 0
 		else
 				\ copy loc/count to return stack
@@ -236,3 +236,11 @@ needs util.fs
 				1-
 		then
 ;
+
+\ returns counted string
+: input$ ( -- addr$ )
+		256 allocate throw
+		dup 1+ 255 accept
+		over c!
+;
+

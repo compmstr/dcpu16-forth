@@ -1,4 +1,4 @@
-
+needs constants.fs
 \ 0 constant [struct \ -- 0 | 0 is default size of structure
 
 \ : field \ offset n -- offset+n ; addr -- addr + offset

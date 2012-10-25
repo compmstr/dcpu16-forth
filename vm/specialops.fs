@@ -1,4 +1,4 @@
-needs util.fs
+needs ../utils/util.fs
 needs vmvars.fs
 needs vmloc.fs
 needs vmcode.fs

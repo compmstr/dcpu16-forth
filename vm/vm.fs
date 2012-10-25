@@ -1,10 +1,10 @@
-needs shorts.fs
-needs constants.fs
-needs ops.fs
-needs util.fs
-needs vmloc.fs
+needs ../utils/shorts.fs
+needs ../utils/constants.fs
+needs ../utils/util.fs
+needs ../utils/files.fs
 needs vmvars.fs
-needs files.fs
+needs ops.fs
+needs vmloc.fs
 
 : load-code-from-file ( string count -- )
 		open-input-bin

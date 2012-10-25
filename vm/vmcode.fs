@@ -1,5 +1,5 @@
 needs vmvars.fs
-needs util.fs
+needs ../utils/util.fs
 needs ops.fs
 
 : get-code-word-op ( word -- op )

@@ -1,5 +1,5 @@
-needs util.fs
-needs files.fs
+needs ../utils/util.fs
+needs ../utils/files.fs
 
 struct
 		\ one of the LOC_... constants

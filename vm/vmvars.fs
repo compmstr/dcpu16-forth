@@ -1,6 +1,6 @@
-needs shorts.fs
-needs util.fs
-needs types.fs
+needs ../utils/shorts.fs
+needs ../utils/util.fs
+needs ../utils/types.fs
 
 0x10000 short-array vm_ram
 

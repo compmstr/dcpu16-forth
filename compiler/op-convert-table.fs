@@ -1,6 +1,6 @@
-needs util.fs
-needs strings.fs
-needs constants.fs
+needs ../utils/util.fs
+needs ../utils/strings.fs
+needs ../utils/constants.fs
 
 struct
 		cell% field op-name
@@ -28,7 +28,7 @@ end-struct op-convert
 		while \ table loc count
 						rot op-convert struct-size + -rot
 		repeat
-		2drop \ table 
+		2drop \ table
 		op-code @ \ op-code
 ;
 

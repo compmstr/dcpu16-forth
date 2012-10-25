@@ -1,9 +1,9 @@
-needs constants.fs
-needs types.fs
-needs files.fs
-needs shorts.fs
-needs strings.fs
-needs util.fs
+needs ../utils/constants.fs
+needs ../utils/types.fs
+needs ../utils/files.fs
+needs ../utils/shorts.fs
+needs ../utils/strings.fs
+needs ../utils/util.fs
 needs op-convert-table.fs
 needs tokenval.fs
 needs codelistentry.fs

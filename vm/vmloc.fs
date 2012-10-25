@@ -1,7 +1,7 @@
-needs shorts.fs
-needs util.fs
+needs ../utils/shorts.fs
+needs ../utils/util.fs
+needs ../utils/constants.fs
 needs vm.fs
-needs constants.fs
 needs vmvars.fs
 
 : vmloc-clear ( vmloc -- vmloc )

@@ -45,3 +45,18 @@ needs ops.fs
 		get-next-code-word
 		2drop drop \ drop a, b, and word
 ;
+
+: vm-sw-interrupt ( msg -- ) \ does an interrupt
+		\ essentially does a jsr to IA
+		\ push PC and A to stack
+		VM_IA-get 0 = if
+				." Interrupt Address is set to 0"
+				abort
+		then
+		VM_PC-get VM_SP_PUSH
+		REG_A reg-get VM_SP_PUSH
+		\ set A to message
+		REG_A reg-set
+		\ set PC to IA
+		VM_IA-get VM_PC-set
+;

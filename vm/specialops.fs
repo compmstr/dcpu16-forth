@@ -14,6 +14,8 @@ needs vmcode.fs
 		VM_PC-set
 ;
 : run-OP_INT ( a -- ) \ trigger software int with message a
+		vmloc-get
+		vm-sw-interrupt
 ;
 : run-OP_IAG ( a -- ) \ get IA(interrupt address)
 		VM_IA-get

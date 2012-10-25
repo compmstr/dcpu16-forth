@@ -12,3 +12,10 @@ struct
 		short% field vmloc-val
 end-struct vmloc
 
+\ interrupt queue entry
+struct
+		short% field intq-entry-message
+		cell% field intq-entry-next
+end-struct intq-entry
+
+

@@ -11,6 +11,17 @@ wvariable VM_SP
 wvariable VM_EX
 wvariable VM_IA
 
+\ interrupt queue
+\ are we currently queueing interrupts?
+variable intq-queue
+0 intq-queue !
+variable intq-start
+0 intq-start !
+variable intq-end
+0 intq-end !
+variable intq-size
+0 intq-size !
+
 create vmloc_a vmloc %allot drop
 create vmloc_b vmloc %allot drop
 

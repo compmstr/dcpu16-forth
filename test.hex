@@ -1,0 +1,36 @@
+; basic ops           
+SET A, 0x30           |  7c01 0030       
+SET [0x1000], 0x20    |  7fc1 0020 1000 
+SUB A, [0x1000]       |  7803 1000
+IFN A, 0x10           |  c013 
+SET PC, end           |  7f81 0020
+                      |  
+; do a loopy thing    |  
+SET I, 10             |  a8c1 
+SET A, 0x2000         |  7c01 2000
+:loop                 |  :loop \ 0x0d
+SET [0x2000+I], [A]   |  22c1 2000
+SUB I, 1              |  84c3
+IFN I, 0              |  80d3
+SET PC, loop          |  7f81 000d
+                      |  
+; Test ops            |  
+SET A, 0x10           |  c001 
+SET B, 0x20           |  7c21 0020
+ADD B, A              |  0022
+; 0x30                |  
+DIV B, A              |  0026
+; 0x3                 |  
+MUL B, A              |  0024
+; 0x30                |  
+                      |  
+;Call a subroutine    |  
+SET X, 0x4            |  9061
+JSR testsub           |  7c20 001e
+SET PC, end           |  7f81 0020
+                      |  
+:testsub              |  :testsub
+SHL X, 4              |  906f 
+SET PC, POP           |  6381
+                      |  
+:end                  |  :end

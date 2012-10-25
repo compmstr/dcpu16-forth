@@ -26,11 +26,11 @@ MUL B, A
 
 ;Call a subroutine
 SET X, 0x4
-;JSR testsub
+JSR testsub
 SET PC, end
-;
-;:testsub
-;SHL X, 4
-;SET PC, POP
+
+:testsub
+SHL X, 4
+SET PC, POP
 
 :end

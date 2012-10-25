@@ -24,15 +24,18 @@ end-struct codelistentry
 : get-codelistentry-size ( codelistentry -- size )
 		case dup codelistentry-type @
 				codelistentry-type_op of
+						." Standard op codelistentry-size" cr
 						true over codelistentry-aval @ get-tokenval-size
 						swap false swap codelistentry-bval @ get-tokenval-size
 						+ 1+
 				endof
 				codelistentry-type_special-op of
+						." Special op codelistentry-size" cr
 						true swap codelistentry-aval @ get-tokenval-size
 						1+
 				endof
 				codelistentry-type_label of
+						." Label codelistentry-size" cr
 						drop 0
 				endof
 				codelistentry-type_data of
@@ -77,7 +80,7 @@ end-struct codelistentry
 				endof
 				CODELISTENTRY-TYPE_LABEL of
 						\ get rid of entry
-						drop 
+						drop
 				endof
 		endcase
 ;
@@ -121,9 +124,26 @@ variable codelistentry-encode-size
 		r> drop
 ;
 : codelistentry-encode-SPECIAL-OP
-		\ encode a
+		>r \ store codelistentry on return stack
+		\ set up vars
+		0 codelistentry-encode-accum !
+		0 codelistentry-encode-size !
+
 		\ encode op
-		\ combine
+		r@ codelistentry-op w@
+		#5 lshift
+		codelistentry-encode-accum !
+		\ encode a
+		r@ codelistentry-aval @
+		true swap encode-tokenval \ aword [aword1] count
+		1 = if \ aword aword1
+				1 codelistentry-encode-size +!
+				swap \ aword1 aword
+		then \ ..aword
+		#10 lshift codelistentry-encode-accum @ +
+		0xFFFF and \ [aword1] entry
+		codelistentry-encode-size @
+		r> drop
 ;
 : codelistentry-encode-LABEL
 		drop -1

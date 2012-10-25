@@ -178,6 +178,7 @@ create tokenval-sizers
 \ returns the size in words of a token val
 \   either 0 or 1
 : get-tokenval-size ( tokenval -- size )
+		." get-tokenval-size" cr
 		dup tokenval-type w@ 1- cells \ tokenval (type-1 cells)
 		tokenval-sizers + @
 		0 over <> if
@@ -263,13 +264,13 @@ create tokenval-encoders
 ' tokenval-encode-LOC_PICK ,
 ' tokenval-encode-LOC_LABEL ,
 
-: encode-tokenval ( tokenval -- word [word] count[0/1] )
+: encode-tokenval ( a-mode tokenval -- word [word] count[0/1] )
 		dup tokenval-type w@ 1- cells
 		tokenval-encoders + @
 		execute
 ;
 
-\ All of these: ( tokenval loc count -- tokenvalue )
+\ All of these: ( a-mode tokenval loc count -- tokenvalue )
 : tokenvalue-get-LOC_REG
 		2 pick tokenval-type LOC_REG swap w!
 		drop c@ char->reg
@@ -284,7 +285,7 @@ create tokenval-encoders
 		2 pick tokenval-type LOC_REG_MEM swap w!
 		string-without-ends drop c@ char->reg
 		over tokenval-reg w!
-		
+
 ;
 : tokenvalue-get-LOC_REG_MEM_OFFSET
 		2 pick tokenval-type LOC_REG_MEM_OFFSET swap w!
@@ -303,7 +304,7 @@ create tokenval-encoders
 				drop c@ char->reg \ tokenval offset reg
 				swap
 		then \ tokenval reg offset
-		2 pick tokenval-loc w! 
+		2 pick tokenval-loc w!
 		over tokenval-reg w!
 ;
 : tokenvalue-get-LOC_LITERAL
@@ -312,20 +313,20 @@ create tokenval-encoders
 		over tokenval-val w!
 ;
 : tokenvalue-get-LOC_SP
-		2 pick tokenval-type LOC_SP swap w!
+		2drop LOC_SP over tokenvalue-type w!
 ;
 : tokenvalue-get-LOC_PC
 		2drop \ tokenval
 		LOC_PC over tokenval-type w!
 ;
 : tokenvalue-get-LOC_EX
-		2 pick tokenval-type LOC_EX swap w!
+		2drop LOC_EX over tokenvalue-type w!
 ;
 : tokenvalue-get-LOC_PUSHPOP
-		2 pick tokenval-type LOC_PUSHPOP swap w!
+		2drop LOC_PUSHPOP over tokenval-type w!
 ;
 : tokenvalue-get-LOC_PEEK
-		2 pick tokenval-type LOC_PEEK swap w!
+		2drop LOC_PEEK over tokenvalue-type w!
 ;
 : tokenvalue-get-LOC_PICK
 		2 pick tokenval-type LOC_PICK swap w!

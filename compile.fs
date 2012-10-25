@@ -13,7 +13,7 @@ variable code-buffer
 variable code-buffer-pos
 0 code-buffer-pos !
 : free-code-buffer
-		." Freeing code buffer"
+		." Freeing code buffer" cr
 		0 code-buffer @ <> if
 				code-buffer @ free throw
 				0 code-buffer !
@@ -53,7 +53,7 @@ end-struct code-label
 						r> dup codelistentry-next @ >r
 						free throw
 		repeat
-		
+
 		r> drop
 		0 code-list !
 		0 code-list-end !
@@ -131,7 +131,7 @@ end-struct code-label
 ;
 
 \ runs through the code list, and sets the codeloc for each entry
-: set-codelist-codelocs ( -- size ) 
+: set-codelist-codelocs ( -- size )
 		0 code-list @ \ <size> <first code entry>
 		begin
 				0 over <> while
@@ -216,7 +216,7 @@ end-struct code-label
 ;
 : is-line-label ( loc size -- loc size t/f )
 		over c@
-		[char] : = 
+		[char] : =
 ;
 : is-line-dat ( loc size -- loc size t/f )
 		2dup drop
@@ -225,8 +225,8 @@ end-struct code-label
 ;
 
 : process-op ( loc size -- codelistentry )
-		\ break:
-		op-table find-op \ op
+		." Processing op: " 2dup type cr
+		2dup op-table find-op \ loc size op
 		0 over = if
 				\ special op
 				drop \ loc size
@@ -245,6 +245,7 @@ end-struct code-label
 				r>
 		else
 				\ standard op
+				-rot 2drop \ get rid of op name, don't need it
 				get-next-token \ op loc size
 				tokenval %alloc -rot \ op tokenval(b) loc size
 				get-token-value \ op b
@@ -296,7 +297,7 @@ end-struct code-label
 		code-list @ \ first thing of code
 		>r \ store it in the return stack
 		begin
-				r@ 0 <> while 
+				r@ 0 <> while
 						r@ encode-codelistentry \ cle [word] [word] [word] count/-1
 						-1 over = if
 								drop
@@ -315,6 +316,7 @@ end-struct code-label
 
 : compile-file ( fout-filename len fin-filename len -- )
 		." Compiling file: " 2dup type cr
+		." To file: " 2over type cr
 		\ clear out the code list if needed
 		empty-codelist
 		open-input

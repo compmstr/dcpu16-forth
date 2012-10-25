@@ -1,2 +1,6 @@
 hex
-include vm.fs vm-init vm-run
+: print-argc
+  argc @ . ." Arguments"
+;
+print-argc
+include vm/vm.fs run-test-file -e bye

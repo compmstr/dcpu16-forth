@@ -13,21 +13,25 @@ needs vmcode.fs
 		vmloc-get \ aval
 		VM_PC-set
 ;
-: run-OP_INT ( a -- )
+: run-OP_INT ( a -- ) \ trigger software int with message a
 ;
-: run-OP_IAG ( a -- )
+: run-OP_IAG ( a -- ) \ get IA(interrupt address)
+		VM_IA-get
+		swap vmloc-set
 ;
-: run-OP_IAS ( a -- )
+: run-OP_IAS ( a -- ) \ set IA
+		vmloc-get
+		VM_IA-set
 ;
-: run-OP_RFI ( a -- )
+: run-OP_RFI ( a -- ) \ disable interrupt queuing, pop A, then PC from stack
 ;
-: run-OP_IAQ ( a -- )
+: run-OP_IAQ ( a -- ) \ if not zero, interrupts will be queued, if 0, interrupts will be triggered
 ;
-: run-OP_HWN ( a -- )
+: run-OP_HWN ( a -- ) \ get number of connected hardware devices
 ;
-: run-OP_HWQ ( a -- )
+: run-OP_HWQ ( a -- ) \ sets A,B,C,X,Y to info about hw number a
 ;
-: run-OP_HWI ( a -- )
+: run-OP_HWI ( a -- ) \ sends interrupt to hardware A
 ;
 
 0x20 array special-ops-xt \ operation XT, opcode is index

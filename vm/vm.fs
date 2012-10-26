@@ -44,6 +44,14 @@ needs hw.fs
 		then
 ;
 
+\ update all of the hardware installed
+: update-hw ( -- )
+		hw-count @ 0 do
+				i hw-devs hw-list @ +
+				update-xt @ execute
+		loop
+;
+
 \ returns true if able to run code, false if no more code
 : vm-step ( -- t/f )
 		get-next-code-word
@@ -55,6 +63,7 @@ needs hw.fs
 				\ 0 already on the stack
 		then
 		\ try to run an interrupt
+		update-hw
 		run-sw-interrupt
 ;
 

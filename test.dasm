@@ -1,3 +1,14 @@
+;call an interrupt
+IAS int-handler
+INT 0x08
+
+;use a variable
+JSR find-clock
+
+SET A, 0
+SET B, 1 
+HWI [clock-hw]
+
 ; basic ops
 SET A, 0x30
 SET [0x1000], 0x20
@@ -24,12 +35,12 @@ DIV B, A
 MUL B, A
 ; 0x30
 
-;use a variable
-SET [clock-hw], 0x20
-
-;call an interrupt
-IAS int-handler
-INT 0x08
+;wait for a tick
+;:tick-wait
+;SET A, 1
+;HWI [clock-hw]
+;IFN 0, C
+  ;SET PC, tick-wait
 
 ;Call a subroutine
 SET X, 0x4
@@ -40,6 +51,24 @@ SET PC, end
 :testsub
 SHL X, 4
 SET PC, POP
+
+:find-clock
+HWN I
+:find-clock-loop
+  IFE I, 0x00
+    SET PC, find-clock-end
+  HWQ I
+  IFN A, 0xB402
+    SET PC, find-clock-loop-end
+  IFN B, 0x12D0
+    SET PC, find-clock-loop-end
+  SET [clock-hw], I
+  SET PC, find-clock-end
+:find-clock-loop-end
+  ADD I, 1
+  SET PC, find-clock-loop
+:find-clock-end
+  SET PC, POP
 
 ; interrupt handler, sets the message * 5 into X, currently
 :int-handler

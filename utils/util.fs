@@ -5,8 +5,9 @@ variable debug-mode
 
 \ output like .", only if debug-mode is non-0
 : .d"
-		34 parse
-		type
+		[char] " parse
+		postpone sliteral
+		postpone type
 		( debug-mode @
 		if
 				type

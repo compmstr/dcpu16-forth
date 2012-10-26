@@ -32,6 +32,7 @@ variable clock-timeout
 		." Setting clock timeout to:" dup . cr
 		clock-timeout !
 		0 clock-ticks !
+		utime d>s clock-last-tick !
 ;
 : clock-int-get-ticks
 		clock-ticks @
@@ -49,7 +50,7 @@ variable clock-timeout
 ' clock-int-set-int-msg 0x02 clock-ints !
 
 : clock-hw-int-handler
-		." Clock interrupt handler"
+		." Clock interrupt handler" cr
 		REG_A reg-get
 		\ if A < 3 ...
 		3 over >= if
@@ -66,7 +67,8 @@ variable clock-timeout
 				utime d>s clock-last-tick @ - \ cur-timeout tick-time-diff
 				\ find out how many ticks this is
 				swap / \ tick-count
-				0 do
+				0 ?do
+						." tick" cr
 						clock-int-message @
 						over 0 <> if
 								sw-interrupt

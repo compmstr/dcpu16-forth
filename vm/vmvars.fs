@@ -123,6 +123,12 @@ create vmloc_b vmloc %allot drop
 		then
 		r@ intq-end !
 		r> drop
+		1 intq-size +!
+		intq-size @ . ." Interrupt(s)" cr
+		intq-size @ 256 > if
+				page
+				abort" DCPU Caught Fire!"
+		then
 ;
 
 : intq-empty? ( -- t/f )
@@ -146,5 +152,6 @@ create vmloc_b vmloc %allot drop
 				0 r@ intq-entry-prev !
 		then
 		r> drop
+		-1 intq-size +!
 ;
 		

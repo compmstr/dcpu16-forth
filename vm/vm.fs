@@ -52,7 +52,7 @@ needs hw.fs
 				true
 		else
 				." No more code" cr
-				false
+				\ 0 already on the stack
 		then
 		\ try to run an interrupt
 		run-sw-interrupt

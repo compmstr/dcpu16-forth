@@ -71,7 +71,7 @@ variable file-line-pos
 			fd-out close-file throw
 			0 to fd-out
 		else
-				s" Error: File not open"
+				." Error: File not open" cr
 		then
 ;
 

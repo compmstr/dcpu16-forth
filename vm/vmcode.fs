@@ -47,7 +47,7 @@ needs ops.fs
 ;
 
 : sw-interrupt ( message -- )
-		VM_IA-get 0 over <> if
+		VM_IA-get 0 <> if
 				enqueue-intq
 		else
 				drop \ do nothing
@@ -55,6 +55,7 @@ needs ops.fs
 ;
 
 : leave-sw-interrupt ( -- )
+		drop
 		\ turn off interrupt queueing
 		false intq-queue !
 		\ pop A

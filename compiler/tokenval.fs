@@ -100,6 +100,12 @@ end-struct tokenval
 : tokenvalue-LOC_PICK?
 		s" PICK" compare 0 =
 ;
+: tokenvalue-LOC_LABEL_MEM?
+		square-bracketed?
+		\ since this is after all of the other memory location checks,
+		\   we already know they're not the others
+;
+
 create tokentype-checks
 ' TOKENVALUE-LOC_REG? , LOC_REG ,
 ' TOKENVALUE-LOC_MEM? , LOC_MEM ,
@@ -112,6 +118,7 @@ create tokentype-checks
 ' TOKENVALUE-LOC_PUSHPOP? , LOC_PUSHPOP ,
 ' TOKENVALUE-LOC_PEEK? , LOC_PEEK ,
 ' TOKENVALUE-LOC_PICK? , LOC_PICK ,
+' TOKENVALUE-LOC_LABEL_MEM? , LOC_LABEL_MEM ,
 0 ,
 
 \ takes a token, and returns a LOC_ constant for the type of value
@@ -160,6 +167,7 @@ create tokentype-checks
 : tokenval-size-LOC_PEEK 2drop 0 ;
 : tokenval-size-LOC_PICK 2drop 1 ;
 : tokenval-size-LOC_LABEL 2drop 1 ;
+: tokenval-size-LOC_LABEL_MEM 2drop 1 ;
 
 create tokenval-sizers
 ' tokenval-size-LOC_REG ,
@@ -174,6 +182,8 @@ create tokenval-sizers
 ' tokenval-size-LOC_PEEK ,
 ' tokenval-size-LOC_PICK ,
 ' tokenval-size-LOC_LABEL ,
+' tokenval-size-LOC_LABEL_MEM ,
+0 ,
 
 \ returns the size in words of a token val
 \   either 0 or 1
@@ -250,6 +260,12 @@ create tokenval-sizers
 		tokenval-val w@ 0x1f swap \ 0x1f(literal) loc
 		1
 ;
+: tokenval-encode-LOC_LABEL_MEM
+		." encode-loc_label_mem" cr
+		swap drop
+		tokenval-val w@ 0x1e swap \ 0x1e(memory) loc
+		1
+;
 create tokenval-encoders
 ' tokenval-encode-LOC_REG ,
 ' tokenval-encode-LOC_MEM ,
@@ -263,6 +279,7 @@ create tokenval-encoders
 ' tokenval-encode-LOC_PEEK ,
 ' tokenval-encode-LOC_PICK ,
 ' tokenval-encode-LOC_LABEL ,
+' tokenval-encode-LOC_LABEL_MEM ,
 
 : encode-tokenval ( a-mode tokenval -- word [word] count[0/1] )
 		dup tokenval-type w@ 1- cells
@@ -313,20 +330,20 @@ create tokenval-encoders
 		over tokenval-val w!
 ;
 : tokenvalue-get-LOC_SP
-		2drop LOC_SP over tokenvalue-type w!
+		2drop LOC_SP over tokenval-type w!
 ;
 : tokenvalue-get-LOC_PC
 		2drop \ tokenval
 		LOC_PC over tokenval-type w!
 ;
 : tokenvalue-get-LOC_EX
-		2drop LOC_EX over tokenvalue-type w!
+		2drop LOC_EX over tokenval-type w!
 ;
 : tokenvalue-get-LOC_PUSHPOP
 		2drop LOC_PUSHPOP over tokenval-type w!
 ;
 : tokenvalue-get-LOC_PEEK
-		2drop LOC_PEEK over tokenvalue-type w!
+		2drop LOC_PEEK over tokenval-type w!
 ;
 : tokenvalue-get-LOC_PICK
 		2 pick tokenval-type LOC_PICK swap w!
@@ -339,6 +356,13 @@ create tokenval-encoders
 		save-string
 		over tokenval-labelname !
 ;
+: tokenvalue-get-LOC_LABEL_MEM
+		2 pick tokenval-type LOC_LABEL_MEM swap w!
+		string-without-ends
+		save-string
+		over tokenval-labelname !
+;
+
 create tokenvalue-getters
 ' TOKENVALUE-GET-LOC_REG ,
 ' TOKENVALUE-GET-LOC_MEM ,
@@ -352,6 +376,7 @@ create tokenvalue-getters
 ' TOKENVALUE-GET-LOC_PEEK ,
 ' TOKENVALUE-GET-LOC_PICK ,
 ' TOKENVALUE-GET-LOC_LABEL ,
+' TOKENVALUE-GET-LOC_LABEL_MEM ,
 
 \ returns the a or b of a line of code (consumes next token)
 : get-token-value ( tokenval loc size -- tokenval )

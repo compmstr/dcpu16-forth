@@ -105,6 +105,7 @@ end-struct code-label
 \ looks for a label by name, returns -1 if none found
 : find-label ( search-string -- label-loc )
 		get-counted-string \ search-loc search-size
+		." Looking for label: " 2dup type cr 
 		code-labels @ \ sloc ssize label
 		begin 0 over <> while
 						dup >r
@@ -153,7 +154,9 @@ end-struct code-label
 \ set a label type tokenval to a literal one
 : replace-tokenval-label ( tokenval -- )
 		dup tokenval-type @
-		LOC_LABEL <> if
+		LOC_LABEL over <>
+		swap LOC_LABEL_MEM <> and
+		if
 				drop exit
 		then
 

@@ -90,7 +90,7 @@ variable codelistentry-encode-accum
 variable codelistentry-encode-size
 
 ( codelistentry -- [wordb] [worda] baseword count )
-\ count is 0, 1, or 2 for number of extra words
+\ count is number of extra words ( past the first one )
 \ words are encoded word, extra word1, extra word2
 : codelistentry-encode-OP
 		>r \ store codelistentry on return stack
@@ -150,6 +150,19 @@ variable codelistentry-encode-size
 		drop -1
 ;
 : codelistentry-encode-DATA
+		." Encode data" cr
+		codelistentry-data @ \ data
+		\ need push items onto stack in reverse
+		dup @ \ data count
+		dup >r
+		swap 1+ swap \ data+1 count
+		begin
+				2dup cells + @ \ data+1 count word
+				-rot \ word data+1 count
+				1-
+		dup 0 = until
+		2drop \ word...
+		r> 1- \ word... count-1
 ;
 create codelistentry-encoders
 ' codelistentry-encode-OP ,

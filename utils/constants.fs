@@ -21,7 +21,8 @@
 #10 constant LOC_PEEK
 #11 constant LOC_PICK
 #12 constant LOC_LABEL
-#13 constant LOC_IA
+#13 constant LOC_LABEL_MEM
+#14 constant LOC_IA
 
 \ Standard opcodes
 0x00 constant OP_SPECIAL

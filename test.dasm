@@ -24,6 +24,9 @@ DIV B, A
 MUL B, A
 ; 0x30
 
+;use a variable
+SET [clock-hw], 0x20
+
 ;call an interrupt
 IAS int-handler
 INT 0x08

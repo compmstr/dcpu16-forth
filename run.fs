@@ -37,6 +37,14 @@ needs utils/strings.fs
 		page
 ;
 
+: command-vm-dump
+		." VM State: " cr
+		
+		dump-vm-state cr
+
+		any-key-continue page
+;
+
 : command-run
 		." Run:" cr
 
@@ -52,13 +60,13 @@ needs utils/strings.fs
 
 		vm-run-file
 
-		any-key-continue
-		page
+		command-vm-dump
 ;
 
 create commands
 ' command-compile ,
 ' command-run ,
+' command-vm-dump ,
 
 : menu
 		begin
@@ -66,6 +74,7 @@ create commands
 				." ---------------------------" cr
 				." 1) Compile" cr
 				." 2) Run" cr
+				." 3) Dump VM State" cr
 				." q) Quit" cr
 				." ---------------------------" cr
 				." > " key
@@ -74,7 +83,7 @@ create commands
 						bye
 				then
 				[char] 1 -
-				dup 1 > if
+				dup 2 > if
 						." *** Invalid choice! ***" cr
 				else
 					cells commands + @ execute

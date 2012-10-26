@@ -24,13 +24,24 @@ DIV B, A
 MUL B, A
 ; 0x30
 
+;call an interrupt
+IAS int-handler
+INT 0x08
+
 ;Call a subroutine
 SET X, 0x4
+INT 0x04
 JSR testsub
 SET PC, end
 
 :testsub
 SHL X, 4
 SET PC, POP
+
+; interrupt handler, sets the message * 5 into X, currently
+:int-handler
+SET X, A
+MUL X, 5
+RFI 0
 
 :end

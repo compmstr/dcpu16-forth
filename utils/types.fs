@@ -16,6 +16,6 @@ end-struct vmloc
 struct
 		short% field intq-entry-message
 		cell% field intq-entry-next
+		cell% field intq-entry-prev
 end-struct intq-entry
-
 

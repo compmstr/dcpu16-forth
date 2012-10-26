@@ -46,6 +46,8 @@ needs vmloc.fs
 				." No more code" cr
 				false
 		then
+		\ try to run an interrupt
+		run-sw-interrupt
 ;
 
 : vm-run ( -- ) \ runs until get-next-code-word returns 0

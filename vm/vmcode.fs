@@ -46,17 +46,55 @@ needs ops.fs
 		2drop drop \ drop a, b, and word
 ;
 
-: vm-sw-interrupt ( msg -- ) \ does an interrupt
-		\ essentially does a jsr to IA
-		\ push PC and A to stack
-		VM_IA-get 0 = if
-				." Interrupt Address is set to 0"
-				abort
+: sw-interrupt ( message -- )
+		VM_IA-get 0 over <> if
+				enqueue-intq
+		else
+				drop \ do nothing
 		then
-		VM_PC-get VM_SP_PUSH
-		REG_A reg-get VM_SP_PUSH
-		\ set A to message
-		REG_A reg-set
-		\ set PC to IA
-		VM_IA-get VM_PC-set
 ;
+
+: leave-sw-interrupt ( -- )
+		\ turn off interrupt queueing
+		false intq-queue !
+		\ pop A
+		VM_SP_POP REG_A reg-set
+		\ pop PC
+		VM_SP_POP VM_PC-set
+;
+
+: run-sw-interrupt ( -- )
+		false intq-empty? =
+		false intq-queue @ =
+		and
+		0 VM_IA-get <>
+		and if
+				true intq-queue !
+				\ push PC and A to stack
+				VM_PC-get VM_SP_PUSH
+				REG_A reg-get VM_SP_PUSH
+				\ put the message in A
+				dequeue-intq \ message
+				REG_A reg-set
+				\ set PC to IA
+				VM_IA-get VM_PC-set
+		then
+;
+
+: dump-vm-state ( -- )
+		cr ." Registers -- " cr
+		." A: " REG_A reg-get . space
+		." B: " REG_B reg-get . space
+		." C: " REG_C reg-get . cr
+		." X: " REG_X reg-get . space
+		." Y: " REG_Y reg-get . space
+		." Z: " REG_Z reg-get . cr
+		." I: " REG_I reg-get . space
+		." J: " REG_J reg-get . cr
+		." Misc -- " cr
+		." PC: " VM_PC-get . space
+		." EX: " VM_EX-get . space
+		." IA: " VM_IA-get . space
+		." SP: " VM_SP-get . cr
+;
+

@@ -14,9 +14,11 @@ wvariable VM_IA
 \ interrupt queue
 \ are we currently queueing interrupts?
 variable intq-queue
-0 intq-queue !
-variable intq-start
-0 intq-start !
+false intq-queue !
+\ front of queue
+variable intq-front
+0 intq-front !
+\ back of queue
 variable intq-end
 0 intq-end !
 variable intq-size
@@ -101,3 +103,48 @@ create vmloc_b vmloc %allot drop
 		VM_PC+ \ increment PC
 ;
 
+: alloc-intq ( -- loc )
+		intq-entry %alloc
+		dup intq-entry struct-size erase
+;
+
+: enqueue-intq ( message -- )
+		alloc-intq >r
+		\ set the message
+		r@ intq-entry-message w!
+		\ set next to 0
+		0 r@ intq-entry-next !
+		\ if there's no front, set this to the front
+		0 intq-front @ = if
+				r@ intq-front !
+		else
+				\ set current end's next to this
+				r@ intq-end @ intq-entry-next !
+		then
+		r@ intq-end !
+		r> drop
+;
+
+: intq-empty? ( -- t/f )
+		intq-front @ 0 =
+;
+
+: dequeue-intq ( -- message )
+		intq-empty? if
+				." Error: no interrupts enqueued"
+				abort
+		then
+		intq-front @
+		dup intq-entry-next @ >r \ intq-front
+		intq-entry-message w@ \ message
+		r@ intq-front !
+		\ if this is the last item, set the end to 0 too
+		r@ 0 = if
+				0 intq-end !
+		else
+				\ set the new front's prev to 0
+				0 r@ intq-entry-prev !
+		then
+		r> drop
+;
+		

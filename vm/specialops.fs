@@ -14,8 +14,9 @@ needs vmcode.fs
 		VM_PC-set
 ;
 : run-OP_INT ( a -- ) \ trigger software int with message a
+		." OP_INT" cr
 		vmloc-get
-		vm-sw-interrupt
+		sw-interrupt
 ;
 : run-OP_IAG ( a -- ) \ get IA(interrupt address)
 		VM_IA-get
@@ -26,8 +27,15 @@ needs vmcode.fs
 		VM_IA-set
 ;
 : run-OP_RFI ( a -- ) \ disable interrupt queuing, pop A, then PC from stack
+		." OP_RFI" cr
+		leave-sw-interrupt
 ;
 : run-OP_IAQ ( a -- ) \ if not zero, interrupts will be queued, if 0, interrupts will be triggered
+		0 = if
+				false intq-queue !
+		else
+				true intq-queue !
+		then
 ;
 : run-OP_HWN ( a -- ) \ get number of connected hardware devices
 ;

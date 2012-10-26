@@ -1,5 +1,7 @@
 Get .d" working (should be like .", but only output if debug-mode is non0
 
+Fix compilation memory corruption in commented out code in test.dasm
+
 Test clock
 
 Implement screen using SDL?

@@ -1,19 +1,19 @@
 needs constants.fs
-\ 0 constant [struct \ -- 0 | 0 is default size of structure
 
-\ : field \ offset n -- offset+n ; addr -- addr + offset
-		( when defining a structure, a field of size n starts at the given offset,
-		  returning the next offset. at runtime, the offset is added to the base addres )
-		\ create
-		\ over , + \ copy offset, add n, allocate n cells
-	\ does>
-		\ @ +
-\ ;
+variable debug-mode
+0 debug-mode !
 
-\ : struct] \ offset -- ; -- size ;
-		\ \ end a structure defiintion
-		\ constant
-\ ;
+\ output like .", only if debug-mode is non-0
+: .d"
+		34 parse
+		type
+		( debug-mode @
+		if
+				type
+		else
+				2drop
+		then )
+;
 
 : array ( size -- ; n -- addr )
 		create cells \ create n cells

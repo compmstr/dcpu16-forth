@@ -4,7 +4,7 @@ needs vmloc.fs
 needs vmcode.fs
 
 : run-OP_JSR ( a -- ) \ push address of next instruction on stack, then set PC to a
-		." run-OP_JSR" cr
+		." OP_JSR" cr
 		\ PUSH ++PC
 		\ PC has already been incremented while reading this op
 		VM_PC-get \ ++PC

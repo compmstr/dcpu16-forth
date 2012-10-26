@@ -1,4 +1,5 @@
-Get DAT encoding working
+Get .d" working (should be like .", but only output if debug-mode is non0
+
 Test clock
 
 Implement screen using SDL?

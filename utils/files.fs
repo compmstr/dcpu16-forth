@@ -14,6 +14,25 @@ variable file-line-pos
 		0 fd-out <>
 ;
 
+: close-input ( -- )
+		is-input-open? if
+			fd-in close-file throw
+			0 to fd-in
+		else
+				." Error: File not open" cr
+		then
+;
+
+: close-output ( -- )
+		is-output-open? if
+			fd-out close-file throw
+			0 to fd-out
+		else
+				." Error: File not open" cr
+		then
+;
+
+
 : open-input ( addr u -- )
 		is-input-open? if
 				." Error, file already open"
@@ -49,30 +68,13 @@ variable file-line-pos
 		dup allocate throw \ size buffer
 		dup rot \ buffer buffer size
 		fd-in read-file throw \ buffer size-read
+		close-input
 ;
 
 : read-input-line ( -- count eof )
 		0 file-line-pos !
 		file-line-buffer max-line erase
 		file-line-buffer max-line fd-in read-line throw
-;
-
-: close-input ( -- )
-		is-input-open? if
-			fd-in close-file throw
-			0 to fd-in
-		else
-				s" Error: File not open"
-		then
-;
-
-: close-output ( -- )
-		is-output-open? if
-			fd-out close-file throw
-			0 to fd-out
-		else
-				." Error: File not open" cr
-		then
 ;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace

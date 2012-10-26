@@ -82,19 +82,22 @@ needs ops.fs
 ;
 
 : dump-vm-state ( -- )
+base @
+hex
 		cr ." Registers -- " cr
-		." A: " REG_A reg-get . space
-		." B: " REG_B reg-get . space
-		." C: " REG_C reg-get . cr
-		." X: " REG_X reg-get . space
-		." Y: " REG_Y reg-get . space
-		." Z: " REG_Z reg-get . cr
-		." I: " REG_I reg-get . space
-		." J: " REG_J reg-get . cr
-		." Misc -- " cr
-		." PC: " VM_PC-get . space
-		." EX: " VM_EX-get . space
-		." IA: " VM_IA-get . space
-		." SP: " VM_SP-get . cr
+		." A:0x" REG_A reg-get . space
+		." B:0x" REG_B reg-get . space
+		." C:0x" REG_C reg-get . cr
+		." X:0x" REG_X reg-get . space
+		." Y:0x" REG_Y reg-get . space
+		." Z:0x" REG_Z reg-get . cr
+		." I:0x" REG_I reg-get . space
+		." J:0x" REG_J reg-get . cr
+		." Misc --" cr
+		." PC:0x" VM_PC-get . space
+		." EX:0x" VM_EX-get . space
+		." IA:0x" VM_IA-get . space
+		." SP:0x" VM_SP-get . cr
+base !
 ;
 

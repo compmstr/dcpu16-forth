@@ -44,4 +44,9 @@ SET X, A
 MUL X, 5
 RFI 0
 
+:clock-hw
+dat 0x0000
+:variable
+dat 0x0000, 0x0000
+
 :end

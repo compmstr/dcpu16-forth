@@ -103,4 +103,3 @@ variable file-line-pos
 		\ update the file-line pos
 		file-line-pos @ over + file-line-pos ! \ loc count
 ;
-

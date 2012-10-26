@@ -8,6 +8,9 @@ needs op-convert-table.fs
 needs tokenval.fs
 needs codelistentry.fs
 
+\ storage for dat fields while parsing
+#256 array dat-buffer
+
 variable code-buffer
 0 code-buffer !
 variable code-buffer-pos
@@ -265,12 +268,41 @@ end-struct code-label
 ;
 
 : process-dat ( loc size -- codelistentry )
-		\ TODO
+		." Processing data" cr
+		\ loc size just has dat stored in it...
+		2drop
+		0 >r \ store the current number of dat fields
+		begin
+				get-next-token dup while \ loc count
+						\ remove comma
+						remove-trailing-comma
+						\ convert to number
+						string->number
+						\ store in data buffer
+						r@ dat-buffer !
+						\ increment count
+						r> 1+ >r
+		repeat \ loc 0
+		2drop
+		get-codelistentry \ cle
+		dup codelistentry-type CODELISTENTRY-TYPE_DATA swap !
+		\ make storage for count + data
+		r@ 1+ cells allocate throw \ cle loc
+		dup 2 pick codelistentry-data ! \ cle loc
+		r@ over ! \ cle loc
+		1 cells + \ cle loc+1
+		\ copy the memory over
+		0 dat-buffer \ cle dest src
+		swap
+		r> \ cle src dest count
+		move
 ;
 
 : process-line ( u2 -- <codelistentry or 0> )
 		." Processing line: "
 		file-line-buffer over type cr
+		\ convert the input into upper case
+		file-line-buffer over upper-case
 		drop \ don't need the length after this
 		get-next-token \ loc size
 		is-line-comment >r \ loc size

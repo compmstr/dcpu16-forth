@@ -80,6 +80,10 @@ needs util.fs
 
 \ sets all chars in string provided to be upper case
 : upper-case ( loc count -- )
+    dup 0 = if
+        2drop
+        exit
+    then
 		0 do
 				i over + \ loc loc+i
 				dup c@ \ loc loc+i [loc+i]

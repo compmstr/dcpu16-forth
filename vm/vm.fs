@@ -5,6 +5,7 @@ needs ../utils/files.fs
 needs vmvars.fs
 needs ops.fs
 needs vmloc.fs
+needs hw.fs
 
 : load-code-from-file ( string count -- )
 		open-input-bin
@@ -17,12 +18,19 @@ needs vmloc.fs
 		free drop \ don't need buffer anymore
 ;
 
+: vm-init-hw ( -- )
+		s" vm/hw/clock.fs"
+		1
+		add-hw
+;
+
 : vm-init ( -- )
 		clear-registers
 		0 VM_PC w!
 		0xFFFF VM_SP w!
 		0 VM_EX w!
 		0 VM_IA w!
+		vm-init-hw
 ;
 
 \ Standard opcodes

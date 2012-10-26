@@ -39,7 +39,8 @@ end-struct codelistentry
 						drop 0
 				endof
 				codelistentry-type_data of
-						\ TODO
+						." Data codelistentry-size" cr
+						codelistentry-data @ @ \ get first entry of array
 				endof
 		endcase
 ;

@@ -4,3 +4,4 @@ Running/including the file should leave two things on the stack:
 
 xt to get hw info (top of stack)
 xt for interrupt handler
+xt for hardware update word

@@ -101,9 +101,14 @@ cw,-len @ test-code-len !
 		loop
 ;
 
-: run-test-file ( -- )
-		s" test.dbin" load-code-from-file
+: vm-run-file ( loc size -- )
+		load-code-from-file
 		vm-init
 		vm-run
+;
+
+: run-test-file ( -- )
+		s" test.dbin" 
+		vm-run-file
 ;
 

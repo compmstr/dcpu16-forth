@@ -93,6 +93,7 @@ variable codelistentry-encode-size
 \ count is number of extra words ( past the first one )
 \ words are encoded word, extra word1, extra word2
 : codelistentry-encode-OP
+		." encode op" cr
 		>r \ store codelistentry on return stack
 		\ set up local vars
 		0 codelistentry-encode-accum !
@@ -125,6 +126,7 @@ variable codelistentry-encode-size
 		r> drop
 ;
 : codelistentry-encode-SPECIAL-OP
+		." Encode special op" cr
 		>r \ store codelistentry on return stack
 		\ set up vars
 		0 codelistentry-encode-accum !

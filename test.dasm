@@ -36,11 +36,11 @@ MUL B, A
 ; 0x30
 
 ;wait for a tick
-;:tick-wait
-;SET A, 1
-;HWI [clock-hw]
-;IFN 0, C
-  ;SET PC, tick-wait
+:tick-wait
+SET A, 1
+HWI [clock-hw]
+IFN 0x00, C
+  SET PC, tick-wait
 
 ;Call a subroutine
 SET X, 0x4

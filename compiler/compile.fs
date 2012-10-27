@@ -29,7 +29,8 @@ variable code-buffer-pos
 		0 code-buffer-pos !
 ;
 : append-to-code-buffer ( short -- )
-		code-buffer @ code-buffer-pos @ shorts + !
+		." Appending to code buffer at loc: " code-buffer-pos @ . cr
+		code-buffer @ code-buffer-pos @ shorts + w!
 		1 code-buffer-pos +!
 ;
 
@@ -327,7 +328,6 @@ end-struct code-label
 ;
 
 : encode-codelist ( -- )
-		\ TODO dictionay gets corrupted somewhere in here
 		0 code-buffer-pos !
 		code-list @ \ first thing of code
 		>r \ store it in the return stack

@@ -24,6 +24,7 @@ needs hw.fs
 		swap vmloc-set
 ;
 : run-OP_IAS ( a -- ) \ set IA
+		." OP_IAS" cr
 		vmloc-get
 		VM_IA-set
 ;

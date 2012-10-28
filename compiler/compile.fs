@@ -127,6 +127,7 @@ end-struct code-label
 		CODELISTENTRY-TYPE_LABEL over codelistentry-type @ = if
 				\ get the label
 				dup codelistentry-label @ \ pos entry label
+				2 pick over label-name @ ." Label: " print-string space ." loc: " . cr
 				0 over <> if
 						2 pick swap label-pos w! \ pos entry
 				else

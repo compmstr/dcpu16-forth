@@ -257,13 +257,13 @@ create tokenval-sizers
 : tokenval-encode-LOC_LABEL
 		." encode-loc_label" cr
 		swap drop
-		tokenval-val w@ 0x1f swap \ 0x1f(literal) loc
+		0x1f swap tokenval-val w@ \ 0x1f(literal) loc
 		1
 ;
 : tokenval-encode-LOC_LABEL_MEM
 		." encode-loc_label_mem" cr
 		swap drop
-		tokenval-val w@ 0x1e swap \ 0x1e(memory) loc
+		0x1e swap tokenval-val w@ \ 0x1e(memory) loc
 		1
 ;
 create tokenval-encoders

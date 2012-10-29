@@ -1,3 +1,4 @@
+clock ticks twice at once...
 Literal optimizer is off occationally
 
 Get .d" working (should be like .", but only output if debug-mode is non0

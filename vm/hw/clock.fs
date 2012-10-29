@@ -74,6 +74,7 @@ variable clock-timeout
 						over 0 <> if
 								sw-interrupt
 								utime d>s clock-last-tick !
+								1 clock-ticks +!
 						else
 								drop
 						then

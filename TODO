@@ -1,5 +1,4 @@
-Label loc generation is one off currently ( the interrupt handler is set one before )
-Label loc genration is only off on int-handler at the moment, it seems... maybe earlier
+Literal optimizer is off occationally
 
 Get .d" working (should be like .", but only output if debug-mode is non0
 

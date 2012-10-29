@@ -65,6 +65,7 @@ variable clock-timeout
 				\ find current timeout
 				clock-60-hz * \ cur-timeout
 				utime d>s clock-last-tick @ - \ cur-timeout tick-time-diff
+				\ ." timeout diff ticks: " 2dup . . 2dup swap / . cr
 				\ find out how many ticks this is
 				swap / \ tick-count
 				0 ?do
@@ -72,6 +73,7 @@ variable clock-timeout
 						clock-int-message @
 						over 0 <> if
 								sw-interrupt
+								utime d>s clock-last-tick !
 						else
 								drop
 						then

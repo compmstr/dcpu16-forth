@@ -39,7 +39,7 @@ MUL B, A
 :tick-wait
 SET A, 1
 HWI [clock-hw]
-IFN 0x00, C
+IFE 0x00, C
   SET PC, tick-wait
 
 ;Call a subroutine

@@ -1,5 +1,6 @@
 needs ../utils/util.fs
 needs ../utils/files.fs
+needs ../utils/shorts.fs
 
 struct
 		\ one of the LOC_... constants

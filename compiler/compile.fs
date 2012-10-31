@@ -305,9 +305,8 @@ end-struct code-label
 
 : process-line ( u2 -- <codelistentry or 0> )
 		." Processing line: "
-		file-line-buffer over type cr
-		\ convert the input into upper case
-		file-line-buffer over upper-case
+		print-current-line-buffer cr
+		uppercase-input-buffer
 		drop \ don't need the length after this
 		get-next-token \ loc size
 		is-line-comment >r \ loc size

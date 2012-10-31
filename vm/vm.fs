@@ -8,8 +8,7 @@ needs vmloc.fs
 needs hw.fs
 
 : load-code-from-file ( string count -- )
-		open-input-bin
-		read-input-file \ buffer size
+		read-bin-file \ buffer size-read
 		2 / \ convert size to shorts
 		0 do
 				dup i shorts + w@

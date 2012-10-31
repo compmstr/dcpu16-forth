@@ -1,10 +1,4 @@
-clock ticks twice at once...
-Literal optimizer is off occationally
-
-Get .d" working (should be like .", but only output if debug-mode is non0
-
-Test clock
+Implement #includes for asm
+Implement dat strings
 
 Implement screen using SDL?
-
-Allow for MEM locations to take a label on compiling

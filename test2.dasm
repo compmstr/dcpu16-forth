@@ -38,24 +38,6 @@ HWI [dumper-hw]
 
 SET PC, end
 
-:find-clock
-HWN I
-:find-clock-loop
-  IFE I, 0x00
-	  SET PC, find-clock-end
-	HWQ I
-	IFN A, 0xB402
-	  SET PC, find-clock-loop-end
-	IFN B, 0x12D0
-	  SET PC, find-clock-loop-end
-  SET [clock-hw], I
-	SET PC, find-clock-end
-:find-clock-loop-end
-  SUB I, 1
-	SET PC, find-clock-loop
-:find-clock-end
-  SET PC, POP
-
 ;hw-find -- find a piece of hardware by ID
 ;  Put HW ID in A, B (low, high)
 ;  Put storage location in C

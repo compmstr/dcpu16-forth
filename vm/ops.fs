@@ -25,12 +25,12 @@ needs specialops.fs
 		then
 ;
 : run-OP_SET ( a b -- ) \ a -> b
-		." OP_SET" cr
+		.d" OP_SET"
 		swap vmloc-get \ b a-val
 		swap vmloc-set \ a-val b vmloc-set
 ;
 : run-OP_ADD ( a b -- ) \ sets b to b+a, sets EX to 1 if overflow, 0 otherwise
-		." OP_ADD" cr
+		.d" OP_ADD"
 		op-get-b-and-vals \ b b-val a-val
 		+ \ b b+a
 		0xFFFF over > if
@@ -42,7 +42,7 @@ needs specialops.fs
 		swap vmloc-set
 ;
 : run-OP_SUB ( a b -- ) \ b-a -> b -- EX is 0xFFFF if underflow, 0 otherwise
-		." OP_SUB" cr
+		.d" OP_SUB"
 		op-get-b-and-vals \ b b-val a-val
 		- \ b b-a
 		0 over > if
@@ -54,7 +54,7 @@ needs specialops.fs
 		swap vmloc-set
 ;
 : run-OP_MUL ( a b -- ) \ sets b to b*a, sets EX to ((b*a) >> 16) & 0xFFFF (b and a are unsigned)
-		." OP_MUL" cr
+		.d" OP_MUL"
 		op-get-b-and-vals \ b b-val a-val
 		* \ b b*a
 		dup 16 rshift 0xFFFF and \ b b*a EX
@@ -65,7 +65,7 @@ needs specialops.fs
 : run-OP_MLI ( a b -- ) \ like MUL, but signed
 ;
 : run-OP_DIV ( a b -- ) \ sets b to b/a, sets EX to ((b<<16)/a)&0xFFFF. if a==0, sets b, EX to 0
-		." OP_DIV" cr
+		.d" OP_DIV"
 		op-get-b-and-vals \ b b-val a-val
 		0 over = if
 				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
@@ -82,7 +82,7 @@ needs specialops.fs
 : run-OP_DVI ( a b -- ) \ like DIV, but signed
 ;
 : run-OP_MOD ( a b -- ) \ sets b to b%a, if a == 0, sets b to 0 instead
-		." OP_MOD" cr
+		.d" OP_MOD"
 		op-get-b-and-vals \ b b-val a-val
 		0 over = if
 				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
@@ -94,17 +94,17 @@ needs specialops.fs
 : run-OP_MDI ( a b -- ) \ like mod, but signed (MDI -7, 16 == -7)
 ;
 : run-OP_AND ( a b -- ) \ sets b to b&a
-		." OP_AND" cr
+		.d" OP_AND"
 		op-get-b-and-vals \ b b-val a-val
 		and swap vmloc-set
 ;
 : run-OP_BOR ( a b -- ) \ sets b to b|a
-		." OP_BOR" cr
+		.d" OP_BOR"
 		op-get-b-and-vals \ b b-val a-val
 		or swap vmloc-set
 ;
 : run-OP_XOR ( a b -- ) \ sets b to b^a
-		." OP_XOR" cr
+		.d" OP_XOR"
 		op-get-b-and-vals \ b b-val a-val
 		xor swap vmloc-set
 ;
@@ -120,7 +120,7 @@ needs specialops.fs
 : run-OP_ASR ( a b -- )
 ;
 : run-OP_SHL ( a b -- )
-		." OP_SHL" cr
+		.d" OP_SHL"
 		op-get-b-and-vals \ b b-val a-val
 		lshift \ b b<<a
 		dup 16 rshift 0xFFFF and \ b b<<a ((b<<a)>>16)&0xFFFF
@@ -142,21 +142,21 @@ needs specialops.fs
 		then
 ;
 : run-OP_IFE ( a b -- ) \ run next code only if a == b
-		." OP_IFE" cr
+		.d" OP_IFE"
 		op-get-vals \ b-val a-val
 		<> if
 				vm-skip
 		then
 ;
 : run-OP_IFN ( a b -- ) \ run next code only if a != b
-		." OP_IFN" cr
+		.d" OP_IFN"
 		op-get-vals \ b-val a-val
 		= if
 				vm-skip
 		then
 ;
 : run-OP_IFG ( a b -- ) \ skip unless b>a
-		." OP_IFG" cr
+		.d" OP_IFG"
 		op-get-vals \ b-val a-val
 		<= if
 				vm-skip
@@ -165,7 +165,7 @@ needs specialops.fs
 : run-OP_IFA ( a b -- ) \ skip unless b>a (signed)
 ;
 : run-OP_IFL ( a b -- ) \ skip unless b<a
-		." OP_IFL" cr
+		.d" OP_IFL"
 		op-get-vals \ b-val a-val
 		>= if
 				vm-skip

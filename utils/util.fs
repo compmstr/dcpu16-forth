@@ -3,18 +3,21 @@ needs constants.fs
 variable debug-mode
 0 debug-mode !
 
+: type-if-debug ( loc count -- )
+		debug-mode @
+		if
+				type cr
+		else
+				2drop
+		then
+;
+
 \ output like .", only if debug-mode is non-0
 : .d"
 		[char] " parse
 		postpone sliteral
-		postpone type
-		( debug-mode @
-		if
-				type
-		else
-				2drop
-		then )
-;
+		postpone type-if-debug
+; immediate
 
 : array ( size -- ; n -- addr )
 		create cells \ create n cells

@@ -5,7 +5,7 @@ needs vmcode.fs
 needs hw.fs
 
 : run-OP_JSR ( a -- ) \ push address of next instruction on stack, then set PC to a
-		." OP_JSR" cr
+		.d" OP_JSR"
 		\ PUSH ++PC
 		\ PC has already been incremented while reading this op
 		VM_PC-get \ ++PC
@@ -15,7 +15,7 @@ needs hw.fs
 		VM_PC-set
 ;
 : run-OP_INT ( a -- ) \ trigger software int with message a
-		." OP_INT" cr
+		.d" OP_INT"
 		vmloc-get
 		sw-interrupt
 ;
@@ -24,16 +24,16 @@ needs hw.fs
 		swap vmloc-set
 ;
 : run-OP_IAS ( a -- ) \ set IA
-		." OP_IAS" cr
+		.d" OP_IAS"
 		vmloc-get
 		VM_IA-set
 ;
 : run-OP_RFI ( a -- ) \ disable interrupt queuing, pop A, then PC from stack
-		." OP_RFI" cr
+		.d" OP_RFI"
 		leave-sw-interrupt
 ;
 : run-OP_IAQ ( a -- ) \ if not zero, interrupts will be queued, if 0, interrupts will be triggered
-		." OP_IAQ" cr
+		.d" OP_IAQ"
 		0 = if
 				false intq-queue !
 		else
@@ -41,16 +41,16 @@ needs hw.fs
 		then
 ;
 : run-OP_HWN ( a -- ) \ get number of connected hardware devices
-		." OP_HWN" cr
+		.d" OP_HWN"
 		hw-count @ swap vmloc-set
 ;
 : run-OP_HWQ ( a -- ) \ sets A,B,C,X,Y to info about hw number a
-		." OP_HWQ" cr
+		.d" OP_HWQ"
 		vmloc-get 1- \ hw-num
 		hw-devs hw-list @ + info-xt @ execute
 ;
 : run-OP_HWI ( a -- ) \ sends interrupt to hardware A
-		." OP_HWI" cr
+		.d" OP_HWI"
 		vmloc-get 1- \ hw-num
 		hw-devs hw-list @ + int-xt @ execute
 ;

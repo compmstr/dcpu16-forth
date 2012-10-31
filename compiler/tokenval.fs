@@ -152,14 +152,13 @@ create tokentype-checks
 : tokenval-size-LOC_REG_MEM 2drop 0 ;
 : tokenval-size-LOC_REG_MEM_OFFSET 2drop 1 ;
 : tokenval-size-LOC_LITERAL
-		( dup tokenval-val w@ 0x20 < \ a-mode tokenval val<0x20
+		dup tokenval-val w@ 0x20 < \ a-mode tokenval val<0x20
 		\ and a-mode
-		-rot and if
+		rot and if
 				drop 0
 		else
 				drop 1
-		then )
-		2drop 1
+		then
 ;
 : tokenval-size-LOC_SP 2drop 0 ;
 : tokenval-size-LOC_PC 2drop 0 ;
@@ -225,15 +224,13 @@ create tokenval-sizers
 ;
 : tokenval-encode-LOC_LITERAL
 		." encode-loc_literal" cr
-		( tokenval-val w@ \ a-mode val
+		tokenval-val w@ \ a-mode val
 		swap over 0x20 < \ val a-mode val<0x20
 		and if \ val
 				0x20 + 0 \ val+0x20 0
 		else
 				0x1f swap 1 \ 0x1f val 1
-		then )
-		swap drop tokenval-val w@ \ val
-		0x1f swap 1
+		then
 ;
 : tokenval-encode-LOC_SP
 		." encode-loc_sp" cr

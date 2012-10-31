@@ -115,7 +115,10 @@ cw,-len @ test-code-len !
 : vm-run-file ( loc size -- )
 		load-code-from-file
 		vm-init
+		utime d>s
 		vm-run
+		utime d>s
+		cr ." ---Run time: " swap - 1000 / . ." ms---" cr
 ;
 
 : run-test-file ( -- )

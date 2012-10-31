@@ -78,20 +78,38 @@ needs util.fs
 		then
 ;
 
-\ sets all chars in string provided to be upper case
-: upper-case ( loc count -- )
+: lower-case-char ( CHAR -- char )
+		dup [char] A >=
+		over [char] Z <= and
+		if
+				upper-diff +
+		then
+;
+
+: map-string ( xt loc count -- )
     dup 0 = if
-        2drop
+        2drop drop
         exit
     then
 		0 do
-				i over + \ loc loc+i
-				dup c@ \ loc loc+i [loc+i]
-				upper-case-char \ loc loc+i CHAR
-				swap c! \ loc
+				i over + \ xt loc loc+i
+				dup c@ \ xt loc loc+i [loc+i]
+				3 pick execute \ xt loc loc+i CHAR
+				swap c! \ xt loc
 		loop
-		\ drop loc
-		drop
+		\ drop xt and loc
+		2drop
+;
+
+\ sets all chars in string provided to be upper case
+: upper-case ( loc count -- )
+		['] upper-case-char -rot
+		map-string
+;
+
+: lower-case ( loc count -- )
+		['] lower-case-char -rot
+		map-string
 ;
 
 : first-char ( loc count -- c )

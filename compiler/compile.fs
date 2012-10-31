@@ -227,8 +227,14 @@ end-struct code-label
 		[char] : =
 ;
 : is-line-dat ( loc size -- loc size t/f )
-		2dup drop
+		over \ loc size loc
 		s" DAT" rot
+		starts-with
+;
+
+: is-line-include ( loc size -- loc size t/f )
+		over \ loc size loc
+		s" #INCLUDE" rot
 		starts-with
 ;
 
@@ -303,6 +309,13 @@ end-struct code-label
 		move
 ;
 
+: process-include ( loc size -- 0 )
+		2drop 0
+		get-next-token
+		2dup lower-case
+		open-input
+;
+
 : process-line ( u2 -- <codelistentry or 0> )
 		." Processing line: "
 		print-current-line-buffer cr
@@ -321,7 +334,11 @@ end-struct code-label
 						is-line-dat if
 								process-dat
 						else
-								process-op
+								is-line-include if
+										process-include
+								else
+										process-op
+								then
 						then
 				then
 		then

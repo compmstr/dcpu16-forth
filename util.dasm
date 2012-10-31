@@ -1,0 +1,37 @@
+;hw-find -- find a piece of hardware by ID
+;  Put HW ID in A, B (low, high)
+;  Put storage location in C
+;  Put 0 or highest HW id in I
+;  Storage location will be filled with hardware ID, or 0
+:hw-find-highword
+dat 0x0000
+:hw-find-lowword
+dat 0x0000
+:hw-find-storage
+dat 0x0000
+:hw-find
+SET [hw-find-lowword], A
+SET [hw-find-highword], B
+SET [hw-find-storage], C
+SET [C], 0x000
+IFE I, 0x00
+  HWN I
+:hw-find-loop
+  IFE I, 0x00
+    SET PC, hw-find-not-found
+  HWQ I
+  IFN A, [hw-find-lowword]
+    SET PC, hw-find-loop-end
+  IFN B, [hw-find-highword]
+    SET PC, hw-find-loop-end
+  SET X, [hw-find-storage]
+  SET [X], I
+  SET PC, hw-find-end
+:hw-find-loop-end
+  SUB I, 1
+  SET PC, hw-find-loop
+:hw-find-not-found
+  SET X, [hw-find-storage]
+  SET [X], 0x00
+:hw-find-end
+  SET PC, POP

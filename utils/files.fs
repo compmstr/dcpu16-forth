@@ -14,6 +14,7 @@ variable input-file-stack
 
 : push-input-file ( addr u -- )
 		\ open file
+		." push-input-file: " 2dup type cr
 		r/o open-file throw \ fd
 		input-file %alloc \ fd mem
 		swap over \ mem fd mem

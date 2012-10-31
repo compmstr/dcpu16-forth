@@ -69,12 +69,12 @@ variable clock-timeout
 				\ find out how many ticks this is
 				swap / \ tick-count
 				0 ?do
-						." tick"
+						." tick" cr
+						utime d>s clock-last-tick !
+						1 clock-ticks +!
 						clock-int-message @
-						over 0 <> if
+						0 over <> if
 								sw-interrupt
-								utime d>s clock-last-tick !
-								1 clock-ticks +!
 						else
 								drop
 						then

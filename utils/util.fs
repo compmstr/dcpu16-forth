@@ -58,3 +58,11 @@ variable debug-mode
 		dup [char] J = if drop REG_J exit then
 ;
 
+: wait-ns ( ns -- )
+		utime d>s \ ns start-time
+		begin
+				utime d>s over \ ns start-time now
+				over - \ ns start-time diff
+				2 pick < while
+		repeat
+;

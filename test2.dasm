@@ -1,0 +1,45 @@
+; Set the interrupt handler
+IAS int-handler
+
+;Find the clock hardware
+JSR find-clock
+
+;Initialize the clock
+SET A, 0
+SET B, 1
+HWI [clock-hw]
+
+;wait for a clock tick
+SET A, 1
+:tick-wait
+HWI [clock-hw]
+IFE 0x00, C
+		SET PC, tick-wait
+
+SET PC, end
+
+:find-clock
+HWN I
+:find-clock-loop
+  IFE I, 0x00
+	  SET PC, find-clock-end
+	HWQ I
+	IFN A, 0xB402
+	  SET PC, find-clock-loop-end
+	IFN B, 0x12D0
+	  SET PC, find-clock-loop-end
+	SET PC, find-clock-end
+:find-clock-loop-end
+  ADD I, 1
+	SET PC, find-clock-loop
+:find-clock-end
+  SET PC, POP
+
+:clock-hw
+dat 0x0000
+
+; do nothing at the moment
+:int-handler
+RFI 0
+
+:end

@@ -2,19 +2,39 @@
 IAS int-handler
 
 ;Find the clock hardware
-JSR find-clock
+SET A, 0xB402
+SET B, 0x12D0
+SET C, clock-hw
+SET I, 0x00
+JSR hw-find
+
+;Find the dumper hw
+SET A, 0x1337
+SET B, 0xB00B
+SET C, dumper-hw
+SET I, 0x00
+JSR hw-find
 
 ;Initialize the clock
 SET A, 0
 SET B, 1
 HWI [clock-hw]
 
+SET A, 0
+HWI [dumper-hw]
 ;wait for a clock tick
 SET A, 1
 :tick-wait
 HWI [clock-hw]
 IFE 0x00, C
 		SET PC, tick-wait
+
+SET A, 0
+HWI [dumper-hw]
+SET A, clock-hw
+HWI [dumper-hw]
+SET A, dumper-hw
+HWI [dumper-hw]
 
 SET PC, end
 
@@ -36,7 +56,47 @@ HWN I
 :find-clock-end
   SET PC, POP
 
+;hw-find -- find a piece of hardware by ID
+;  Put HW ID in A, B (low, high)
+;  Put storage location in C
+;  Put 0 or highest HW id in I
+;  Storage location will be filled with hardware ID, or 0
+:hw-find-highword
+dat 0x0000
+:hw-find-lowword
+dat 0x0000
+:hw-find-storage
+dat 0x0000
+:hw-find
+SET [hw-find-lowword], A
+SET [hw-find-highword], B
+SET [hw-find-storage], C
+SET [C], 0x000
+IFE I, 0x00
+  HWN I
+:hw-find-loop
+  IFE I, 0x00
+    SET PC, hw-find-not-found
+  HWQ I
+  IFN A, [hw-find-lowword]
+    SET PC, hw-find-loop-end
+  IFN B, [hw-find-highword]
+    SET PC, hw-find-loop-end
+  SET X, [hw-find-storage]
+  SET [X], I
+  SET PC, hw-find-end
+:hw-find-loop-end
+  SUB I, 1
+  SET PC, hw-find-loop
+:hw-find-not-found
+  SET X, [hw-find-storage]
+  SET [X], 0x00
+:hw-find-end
+  SET PC, POP
+
 :clock-hw
+dat 0x0000
+:dumper-hw
 dat 0x0000
 
 ; do nothing at the moment

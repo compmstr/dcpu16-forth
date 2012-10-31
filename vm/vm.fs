@@ -20,7 +20,9 @@ needs hw.fs
 
 : vm-init-hw ( -- )
 		s" vm/hw/clock.fs"
-		1
+		s" vm/hw/clock.fs"
+		s" vm/hw/dumper.fs"
+		3
 		add-hw
 ;
 

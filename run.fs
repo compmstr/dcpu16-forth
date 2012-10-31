@@ -22,7 +22,7 @@ needs utils/strings.fs
 				s" test.dasm"
 		then
 
-		cr ." Enter output file (default: test.dbin) "
+		cr ." Enter output file (default: test.dbin): "
 		input$
 		get-counted-string
 		0 over = if

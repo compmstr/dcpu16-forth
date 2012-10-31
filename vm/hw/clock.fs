@@ -20,11 +20,11 @@ variable clock-timeout
 		\ ID high word
 		0x12D0 REG_B reg-set
 		\ version
-		0X0001 REG_C reg-set
+		0x0001 REG_C reg-set
 		\ Manufacturer low word
 		0x0001 REG_X reg-set
 		\ Manufacturer high word
-		0x0001 REG_Y reg-set
+		0x0000 REG_Y reg-set
 ;
 
 : clock-int-set-ticks
@@ -86,8 +86,8 @@ variable clock-timeout
 ;
 
 ' clock-updater
-cr dup ." Updater: " . cr
+cr dup ." Clock Updater: " . cr
 ' clock-hw-int-handler
-dup ." Int-handler: " . cr
+dup ." Clock Int-handler: " . cr
 ' clock-get-hw-info
-dup ." Info: " . cr
+dup ." Clock Info: " . cr

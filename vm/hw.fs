@@ -18,7 +18,7 @@ end-struct hw-dev
 \ takes a list of files to load as hardware devices
 : add-hw ( loc count ... num_devs -- )
 		hw-list @ 0 <> if
-				hw-list @ free
+				hw-list @ free throw
 		then
 		\ use included ( loc count -- ) to include a file
 		\ allocate space for hardware

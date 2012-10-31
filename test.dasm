@@ -65,7 +65,7 @@ HWN I
   SET [clock-hw], I
   SET PC, find-clock-end
 :find-clock-loop-end
-  ADD I, 1
+  SUB I, 1
   SET PC, find-clock-loop
 :find-clock-end
   SET PC, POP

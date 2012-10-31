@@ -356,18 +356,22 @@ end-struct code-label
 		empty-codelist
 		open-input
 		begin
-				read-input-line
-		while \ while eats the EOF flag
-						process-line
-						\ if we have a codelistentry to add, add it
-						0 over <> if
-								add-to-codelist
-						else
-								drop \ get rid of the 0
-						then
+				is-input-file-open?
+		while
+						begin
+								read-input-line
+						while \ while eats the EOF flag
+										process-line
+										\ if we have a codelistentry to add, add it
+										0 over <> if
+												add-to-codelist
+										else
+												drop \ get rid of the 0
+										then
+						repeat
+						drop \ drop last 0
+						close-input
 		repeat
-		drop \ drop last 0
-		close-input
 		\ calculate the code locations
 		set-codelist-codelocs \ code-size
 		\ replace all of the locations set to labels with the label's position

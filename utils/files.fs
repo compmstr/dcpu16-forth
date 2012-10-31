@@ -42,6 +42,15 @@ variable input-file-stack
 		input-file-stack !
 ;
 
+\ returns true if there is a file open on the top of the file stack
+: is-input-file-open? ( -- t/f )
+		input-file-stack @ 0 <> if
+				true
+		else
+				false
+		then
+;
+
 0 value fd-out
 
 : is-output-open? ( -- t/f )

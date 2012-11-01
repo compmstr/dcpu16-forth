@@ -4,6 +4,7 @@ needs ../../utils/util.fs
 needs ../../utils/shorts.fs
 needs ../vm.fs
 
+\ location in ram where the screen's buffer is
 variable screen-cur-mem
 0 screen-cur-mem !
 
@@ -72,6 +73,24 @@ false screen-blink !
 		0x0fff screen-default-pallette 0xF shorts + w!
 ;
 
+\ returns color entry from current pallette
+: get-pallette-entry ( index -- color )
+		0xF and \ limit index to 0xF
+		shorts screen-cur-pallette @ + w@
+;
+
+: pallette-entry->rgb ( color -- r g b )
+		>r
+		r@ 8 rshift 0xF and
+		r@ 4 rshift 0xF and
+		r> 0xF and
+;
+
+\ returns the sdl color for the pallette entry at index
+: get-pallette-color ( index -- sdl-color )
+		get-pallette-entry pallette-entry->rgb sdl-rgb
+;
+
 : load-default-font
 		screen-default-font free-addr-if-nonzero
 		256 shorts allocate throw to screen-default-font
@@ -83,7 +102,9 @@ false screen-blink !
 
 : init-screen
 		load-default-font
+		screen-default-font screen-cur-font !
 		load-default-pallette
+		screen-default-pallette screen-cur-pallette !
 		\ set screen to refresh (display) in 1 second
 		1000000 utime d>s screen-last-refresh !
 		false screen-blink !
@@ -138,13 +159,35 @@ false screen-blink !
 		sdl-draw-block
 ;
 
-: draw-character ( col row char -- )
+: screen-word-char ( word -- char )
+		0x7f and
+;
+: screen-word-fg ( word -- fg )
+		12 rshift 0xF and
+;
+: screen-word-bg ( word -- bg )
+		8 rshift 0xF and
+;
+: screen-word-blink? ( word -- t/f )
+		0x80 and
+;
+
+: screen-draw-character ( col row word -- )
+		
 ;
 
 : refresh-display ( cur-time[ns] -- )
 		screen-last-refresh @ screen-refresh-timeout + > if
 				\ draw the characters
 				sdl-clear-black
+
+				screen-cur-mem @
+				#386 0 do
+						i 32 mod
+						i 32 /
+						i ram-get
+						screen-draw-character
+				loop
 
 				sdl-flip-screen
 				utime d>s screen-last-refresh !

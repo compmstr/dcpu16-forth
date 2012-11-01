@@ -21,7 +21,8 @@ needs hw.fs
 		s" vm/hw/clock.fs"
 		s" vm/hw/clock.fs"
 		s" vm/hw/dumper.fs"
-		3
+		s" vm/hw/screen.fs"
+		4
 		add-hw
 ;
 

@@ -140,7 +140,7 @@ struct
     sdl-joy-button-event% field sdl-event-jbutton
     sdl-resize-event% field sdl-event-resize
     sdl-expose-event% field sdl-event-expose
-    sdl-quit-event% field sdl-event-quit
+    sdl-quit-event% field sdl-event-quit-field
     sdl-user-event% field sdl-event-user
     sdl-sys-wm-event% field sdl-event-syswm
 end-struct sdl-event%
@@ -169,34 +169,63 @@ include sdlconstants.fs
 		0 <>
 ;
 
-variable screen
-0 screen !
-2 constant screen-bytes-pp \ bytes per pixel
-16 constant screen-bits-pp \ bytes per pixel
-640 constant screen-width
-480 constant screen-height
+variable sdl-screen
+0 sdl-screen !
+2 constant sdl-screen-bytes-pp \ bytes per pixel
+16 constant sdl-screen-bits-pp \ bytes per pixel
+640 constant sdl-screen-width
+sdl-screen-bytes-pp sdl-screen-width * constant sdl-screen-pitch \ bytes per row
+480 constant sdl-screen-height
 
-: draw-pixel ( color x y -- )
-		screen-width
-		* + \ y * pitch + x
-		screen @ sdl-surface-pixels @ swap \ color screen-pixels offset
-		screen-bytes-pp * + \ color screen-pixels[offset*BPP]
-		case screen-bytes-pp
-				1 of
-						c!
-				endof
+: sdl-active?
+		0 sdl-screen @ <>
+;
+
+: write-pixel ( color loc -- )
+		case sdl-screen-bytes-pp
 				2 of
 						w!
 				endof
 				4 of
 						!
 				endof
+				1 of
+						c!
+				endof
 		endcase
+;
+
+: draw-pixel ( color x y -- )
+		sdl-screen-pitch * \ color x y*pitch
+		swap sdl-screen-bytes-pp * +  \ color x*bpp+y*pitch(offset)
+		sdl-screen @ sdl-surface-pixels @ swap \ color sdl-screen-pixels offset
+		+ \ color pixels[offset]
+		write-pixel
+;
+
+: draw-block ( color x y w h -- )
+		2swap
+		sdl-screen-pitch * \ color w h x y*pitch
+		swap sdl-screen-bytes-pp * + \ color w h offset
+		sdl-screen @ sdl-surface-pixels @ + \ color w h pixels[offset]
+		-rot \ color offset w h
+		>r -rot 2 pick r> \ w color offset w h
+		0 do
+				0 do \ w color offset
+						\ i -> y, j -> x
+						2dup
+						i sdl-screen-pitch * +
+						j sdl-screen-bytes-pp * +
+						write-pixel
+				loop
+				2 pick \ w color offset w
+		loop
+		2drop 2drop
 ;
 
 : rgb ( r g b -- color )
 		>r >r >r
-		screen @ sdl-surface-format @
+		sdl-screen @ sdl-surface-format @
 		r> r> r> \ format r g b
 		sdl-map-rgb
 ;
@@ -206,12 +235,12 @@ variable screen
 		sdl-init 0 <> if
 				abort" Error starting SDL"
 		then
-		screen-width screen-height screen-bits-pp SDL_SWSURFACE SDL_DOUBLEBUF or sdl-set-video-mode
-		screen !
+		sdl-screen-width sdl-screen-height sdl-screen-bits-pp SDL_SWSURFACE SDL_DOUBLEBUF or sdl-set-video-mode
+		sdl-screen !
 ;
 
 : draw-stuff
-		( screen @ sdl-lock-surface 0 <> if
+		( sdl-screen @ sdl-lock-surface 0 <> if
 				." Error locking surface" cr
 				exit
 		then )
@@ -221,16 +250,16 @@ variable screen
 		255 0 0 rgb 200 200 draw-pixel
 		0 0 255 rgb 250 250 draw-pixel
 		0 255 0 rgb 300 300 draw-pixel
+		0 255 0 rgb 300 200 4 4 draw-block
 		
-		( screen @ sdl-unlock-surface 0 <> if
+		( sdl-screen @ sdl-unlock-surface 0 <> if
 				." Error unlocking surface" cr
 				exit
 		then )
-		screen @ sdl-flip
+		sdl-screen @ sdl-flip drop
 ;
 
 : stop-sdl
 		sdl-quit
-		0 screen !
+		0 sdl-screen !
 ;
-

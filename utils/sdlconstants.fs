@@ -107,7 +107,7 @@ $04	constant SDL_DATA_TRACK
 4321	constant SDL_BIG_ENDIAN
 0	constant SDL_RELEASED
 1	constant SDL_PRESSED
-$	constant SDL_ALLEVENTS
+$FFFFFFFF	constant SDL_ALLEVENTS
 0	constant SDL_IGNORE
 0	constant SDL_DISABLE
 1	constant SDL_ENABLE
@@ -124,7 +124,7 @@ $01	constant SDL_HAT_UP
 $02	constant SDL_HAT_RIGHT
 $04	constant SDL_HAT_DOWN
 $08	constant SDL_HAT_LEFT
-$	constant SDL_ALL_HOTKEYS
+$FFFFFFFF	constant SDL_ALL_HOTKEYS
 500	constant SDL_DEFAULT_REPEAT_DELAY
 30	constant SDL_DEFAULT_REPEAT_INTERVAL
 1	constant SDL_BUTTON_LEFT

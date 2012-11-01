@@ -26,6 +26,9 @@ end-c-library
 2 2 2constant word%
 1 1 2constant byte%
 cell% 2constant ptr%
+: int@ ( loc -- val )
+		@ 0xFFFFFFFF and
+;
 
 struct 
 		word% field sdl-rect-x
@@ -181,7 +184,7 @@ sdl-screen-bytes-pp sdl-screen-width * constant sdl-screen-pitch \ bytes per row
 		0 sdl-screen @ <>
 ;
 
-: write-pixel ( color loc -- )
+: sdl-write-pixel ( color loc -- )
 		case sdl-screen-bytes-pp
 				2 of
 						w!
@@ -195,15 +198,34 @@ sdl-screen-bytes-pp sdl-screen-width * constant sdl-screen-pitch \ bytes per row
 		endcase
 ;
 
-: draw-pixel ( color x y -- )
+: sdl-clear ( color -- )
+		sdl-screen @ dup sdl-surface-w int@ \ color screen w
+		swap sdl-surface-h int@ \ color w h
+		* \ color size
+		sdl-screen @ sdl-surface-pixels @ \ color size pixels
+		swap 0 do \ color pixels
+				2dup i sdl-screen-bytes-pp * +  \ color pixels color pixels[x,y]
+				sdl-write-pixel
+		loop
+;
+
+\ black is 0 RGB value, so can use memset
+: sdl-clear-black ( -- )
+		sdl-screen @ dup sdl-surface-h int@ \ screen h
+		over sdl-surface-pitch w@ * \ screen size(bytes)
+		swap sdl-surface-pixels @ swap \ pixels size(bytes)
+		0 fill
+;
+
+: sdl-draw-pixel ( color x y -- )
 		sdl-screen-pitch * \ color x y*pitch
 		swap sdl-screen-bytes-pp * +  \ color x*bpp+y*pitch(offset)
 		sdl-screen @ sdl-surface-pixels @ swap \ color sdl-screen-pixels offset
 		+ \ color pixels[offset]
-		write-pixel
+		sdl-write-pixel
 ;
 
-: draw-block ( color x y w h -- )
+: sdl-draw-block ( color x y w h -- )
 		2swap
 		sdl-screen-pitch * \ color w h x y*pitch
 		swap sdl-screen-bytes-pp * + \ color w h offset
@@ -216,14 +238,14 @@ sdl-screen-bytes-pp sdl-screen-width * constant sdl-screen-pitch \ bytes per row
 						2dup
 						i sdl-screen-pitch * +
 						j sdl-screen-bytes-pp * +
-						write-pixel
+						sdl-write-pixel
 				loop
 				2 pick \ w color offset w
 		loop
 		2drop 2drop
 ;
 
-: rgb ( r g b -- color )
+: sdl-rgb ( r g b -- color )
 		>r >r >r
 		sdl-screen @ sdl-surface-format @
 		r> r> r> \ format r g b
@@ -245,17 +267,21 @@ sdl-screen-bytes-pp sdl-screen-width * constant sdl-screen-pitch \ bytes per row
 				exit
 		then )
 
-		0 255 255 rgb 100 100 draw-pixel
-		255 255 0 rgb 150 150 draw-pixel
-		255 0 0 rgb 200 200 draw-pixel
-		0 0 255 rgb 250 250 draw-pixel
-		0 255 0 rgb 300 300 draw-pixel
-		0 255 0 rgb 300 200 4 4 draw-block
+		0 255 255 sdl-rgb 100 100 sdl-draw-pixel
+		255 255 0 sdl-rgb 150 150 sdl-draw-pixel
+		255 0 0 sdl-rgb 200 200 sdl-draw-pixel
+		0 0 255 sdl-rgb 250 250 sdl-draw-pixel
+		0 255 0 sdl-rgb 300 300 sdl-draw-pixel
+		0 255 0 sdl-rgb 300 200 4 4 sdl-draw-block
 		
 		( sdl-screen @ sdl-unlock-surface 0 <> if
 				." Error unlocking surface" cr
 				exit
 		then )
+		sdl-screen @ sdl-flip drop
+;
+
+: sdl-flip-screen
 		sdl-screen @ sdl-flip drop
 ;
 

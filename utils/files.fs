@@ -99,6 +99,12 @@ variable input-file-stack
 		r> close-file throw
 ;
 
+: read-sized-bin-file ( addr u buffer size -- size-read )
+		2swap r/o bin open-file throw >r \ buffer size
+		r@ read-file throw \ size-read
+		r> close-file throw
+;
+
 : print-current-line-buffer
 		input-file-stack @ input-file-line-buffer @
 		input-file-stack @ input-file-line-buffer-len @

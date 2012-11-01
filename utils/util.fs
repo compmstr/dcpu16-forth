@@ -66,3 +66,21 @@ variable debug-mode
 				2 pick < while
 		repeat
 ;
+
+\ frees a passed in addr if it's not zero
+: free-addr-if-nonzero
+		0 over <> if
+				free throw
+		else
+				drop
+		then
+;
+
+\ looks at a variable, if it's not zero, calls free on the value
+: free-var-if-nonzero ( addr -- )
+		@ 0 over <> if
+				free throw
+		else
+				drop
+		then
+;

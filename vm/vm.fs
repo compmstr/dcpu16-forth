@@ -31,6 +31,8 @@ needs hw.fs
 		0xFFFF VM_SP w!
 		0 VM_EX w!
 		0 VM_IA w!
+		0 VM_CYCLES !
+		0 to VM_START_TIME
 		vm-init-hw
 ;
 
@@ -53,11 +55,24 @@ needs hw.fs
 		loop
 ;
 
+\ limits execution to 100khz in cycles
+: vm-throttle
+		\ 10 ns per cycle for 100,000 cycles per second
+		10 vm_cycles @ * \ expected-time
+		utime d>s vm_start_time - \ expected actual
+		- dup 0 > if
+				wait-ns
+		else
+				drop
+		then
+;
+
 \ returns true if able to run code, false if no more code
 : vm-step ( -- t/f )
 		get-next-code-word
 		0 over <> if
 				run-word
+				vm-throttle
 				true
 		else
 				." No more code" cr
@@ -80,44 +95,13 @@ needs hw.fs
 		swap #10 lshift + \ a/b/op
 ;
 
-create test-code
-0x7c01 cw, 0x0030 cw, \ set A, 0x30
-0x7fc1 cw, 0x0020 cw, 0x1000 cw, \ SET [0x1000], 0x20
-0x7803 cw, 0x1000 cw, \ SUB A, [0x1000]
-0xc013 cw, \ IFN A, 0x10
-0x7f81 cw, 0x0020 cw, \ SET PC, end(0x20)
-\ loop
-0xa8c1 cw, \ SET I, 10
-0x7c01 cw, 0x2000 cw, \ SET A, 0x2000
-\ :loop -- 0x0D
-0x22c1 cw, 0x2000 cw, \ SET [0x2000+I], [A]
-0x84c3 cw, \ SUB I, 1
-0x80d3 cw, \ IFN I, 0
-0xb781 cw, \ SET PC, loop
-\ test ops
-0xc001 cw, \ set A, 0x10
-0x7c21 cw, 0x0020 cw, \ set B, 0x20
-0x0022 cw, \ ADD B, A --> 0x30
-0x0026 cw, \ DIV B, A --> 0x3
-0x0024 cw, \ MUL B, A --> 0x30
-
-variable test-code-len
-cw,-len @ test-code-len !
-
-: load-test-code ( -- )
-		test-code-len @ 0 do
-				test-code i shorts + w@
-				i ram-set
-		loop
-;
-
 : vm-run-file ( loc size -- )
 		load-code-from-file
 		vm-init
-		utime d>s
+		utime d>s to vm_start_time
 		vm-run
 		utime d>s
-		cr ." ---Run time: " swap - 1000 / . ." ms---" cr
+		cr ." ---Run time: " vm_start_time - 1000 / . ." ms---" cr
 ;
 
 : run-test-file ( -- )

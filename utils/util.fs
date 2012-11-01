@@ -61,7 +61,7 @@ variable debug-mode
 : wait-ns ( ns -- )
 		utime d>s \ ns start-time
 		begin
-				utime d>s over \ ns start-time now
+				utime d>s \ ns start-time now
 				over - \ ns start-time diff
 				2 pick < while
 		repeat

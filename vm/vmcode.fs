@@ -99,6 +99,7 @@ hex
 		." EX:0x" VM_EX-get . space
 		." IA:0x" VM_IA-get . space
 		." SP:0x" VM_SP-get . cr
+		." Cycles: 0x" vm_cycles @ . cr
 base !
 ;
 

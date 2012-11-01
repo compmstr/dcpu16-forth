@@ -11,6 +11,10 @@ wvariable VM_SP
 wvariable VM_EX
 wvariable VM_IA
 
+variable VM_CYCLES
+0 VM_CYCLES !
+0 value VM_START_TIME
+
 \ interrupt queue
 \ are we currently queueing interrupts?
 variable intq-queue
@@ -26,6 +30,14 @@ variable intq-size
 
 create vmloc_a vmloc %allot drop
 create vmloc_b vmloc %allot drop
+
+: vm-cycles-add ( n -- )
+		vm_cycles +!
+;
+
+: vm-cycles-inc ( -- )
+		1 vm-cycles-add
+;
 
 : clear-registers ( -- ) \ set all registers to 0
 		0 vm_registers 8 shorts erase

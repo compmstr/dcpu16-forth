@@ -160,6 +160,7 @@ needs vmvars.fs
 						reg-get
 				endof
 				LOC_MEM of
+						vm-cycles-inc
 						vmloc-loc w@
 						ram-get
 				endof
@@ -169,6 +170,7 @@ needs vmvars.fs
 						ram-get
 				endof
 				LOC_REG_MEM_OFFSET of
+						vm-cycles-inc
 						dup \ loc loc
 						vmloc-register w@
 						reg-get \ loc regloc
@@ -177,6 +179,7 @@ needs vmvars.fs
 						+ ram-get
 				endof
 				LOC_LITERAL of
+						vm-cycles-inc
 						vmloc-val w@
 				endof
 				LOC_SP of
@@ -199,6 +202,12 @@ needs vmvars.fs
 						\ pop [SP++]
 						drop
 						VM_SP_POP
+				endof
+				LOC_PICK of
+						vm-cycles-inc
+						vmloc-loc w@
+						VM_SP-get +
+						ram-get
 				endof
 		endcase
 ;

@@ -26,11 +26,13 @@ needs specialops.fs
 ;
 : run-OP_SET ( a b -- ) \ a -> b
 		.d" OP_SET"
+		1 vm-cycles-add
 		swap vmloc-get \ b a-val
 		swap vmloc-set \ a-val b vmloc-set
 ;
 : run-OP_ADD ( a b -- ) \ sets b to b+a, sets EX to 1 if overflow, 0 otherwise
 		.d" OP_ADD"
+		2 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		+ \ b b+a
 		0xFFFF over > if
@@ -43,6 +45,7 @@ needs specialops.fs
 ;
 : run-OP_SUB ( a b -- ) \ b-a -> b -- EX is 0xFFFF if underflow, 0 otherwise
 		.d" OP_SUB"
+		2 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		- \ b b-a
 		0 over > if
@@ -55,6 +58,7 @@ needs specialops.fs
 ;
 : run-OP_MUL ( a b -- ) \ sets b to b*a, sets EX to ((b*a) >> 16) & 0xFFFF (b and a are unsigned)
 		.d" OP_MUL"
+		2 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		* \ b b*a
 		dup 16 rshift 0xFFFF and \ b b*a EX
@@ -63,9 +67,11 @@ needs specialops.fs
 		swap vmloc-set
 ;
 : run-OP_MLI ( a b -- ) \ like MUL, but signed
+		2 vm-cycles-add
 ;
 : run-OP_DIV ( a b -- ) \ sets b to b/a, sets EX to ((b<<16)/a)&0xFFFF. if a==0, sets b, EX to 0
 		.d" OP_DIV"
+		3 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		0 over = if
 				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
@@ -80,9 +86,11 @@ needs specialops.fs
 		then
 ;
 : run-OP_DVI ( a b -- ) \ like DIV, but signed
+		3 vm-cycles-add
 ;
 : run-OP_MOD ( a b -- ) \ sets b to b%a, if a == 0, sets b to 0 instead
 		.d" OP_MOD"
+		3 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		0 over = if
 				2drop 0 swap vmloc-set \ ignore b-val/a-val, set b to 0
@@ -92,23 +100,28 @@ needs specialops.fs
 		then
 ;
 : run-OP_MDI ( a b -- ) \ like mod, but signed (MDI -7, 16 == -7)
+		3 vm-cycles-add
 ;
 : run-OP_AND ( a b -- ) \ sets b to b&a
 		.d" OP_AND"
+		1 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		and swap vmloc-set
 ;
 : run-OP_BOR ( a b -- ) \ sets b to b|a
 		.d" OP_BOR"
+		1 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		or swap vmloc-set
 ;
 : run-OP_XOR ( a b -- ) \ sets b to b^a
 		.d" OP_XOR"
+		1 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		xor swap vmloc-set
 ;
 : run-OP_SHR ( a b -- )
+		1 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		rshift \ b b>>a
 		\ set b
@@ -118,9 +131,11 @@ needs specialops.fs
 		0 VM_EX-set
 ;
 : run-OP_ASR ( a b -- )
+		1 vm-cycles-add
 ;
 : run-OP_SHL ( a b -- )
 		.d" OP_SHL"
+		1 vm-cycles-add
 		op-get-b-and-vals \ b b-val a-val
 		lshift \ b b<<a
 		dup 16 rshift 0xFFFF and \ b b<<a ((b<<a)>>16)&0xFFFF
@@ -128,6 +143,7 @@ needs specialops.fs
 		swap vmloc-set
 ;
 : run-OP_IFB ( a b -- ) \ skips unless (b&a)!=0
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		and
 		0 = if
@@ -135,6 +151,7 @@ needs specialops.fs
 		then
 ;
 : run-OP_IFC ( a b -- ) \ skips unless (b&a)==0
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		and
 		0 <> if
@@ -143,6 +160,7 @@ needs specialops.fs
 ;
 : run-OP_IFE ( a b -- ) \ run next code only if a == b
 		.d" OP_IFE"
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		<> if
 				vm-skip
@@ -150,6 +168,7 @@ needs specialops.fs
 ;
 : run-OP_IFN ( a b -- ) \ run next code only if a != b
 		.d" OP_IFN"
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		= if
 				vm-skip
@@ -157,32 +176,40 @@ needs specialops.fs
 ;
 : run-OP_IFG ( a b -- ) \ skip unless b>a
 		.d" OP_IFG"
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		<= if
 				vm-skip
 		then
 ;
 : run-OP_IFA ( a b -- ) \ skip unless b>a (signed)
+		2 vm-cycles-add
 ;
 : run-OP_IFL ( a b -- ) \ skip unless b<a
 		.d" OP_IFL"
+		2 vm-cycles-add
 		op-get-vals \ b-val a-val
 		>= if
 				vm-skip
 		then
 ;
 : run-OP_IFU ( a b -- ) \ skip unless b<a (signed)
+		2 vm-cycles-add
 ;
 : run-OP_ADX ( a b -- )
+		3 vm-cycles-add
 ;
 : run-OP_SBX ( a b -- )
+		3 vm-cycles-add
 ;
 : run-OP_STI ( a b -- ) \ set b to a, inc I and J
+		2 vm-cycles-add
 		run-OP_SET
 		REG_I reg-get 1+ REG_I reg-set
 		REG_J reg-get 1+ REG_J reg-set
 ;
 : run-OP_STD ( a b -- ) \ set b to a, dec I and J
+		2 vm-cycles-add
 		run-OP_SET
 		REG_I reg-get 1- REG_I reg-set
 		REG_J reg-get 1- REG_J reg-set

@@ -125,6 +125,12 @@ needs util.fs
 		-rot
 		last-char [char] ] = and
 ;
+\ returns true if string is surrounded by " and "
+: quoted? ( loc count -- t/f )
+		2dup first-char [char] [ =
+		-rot
+		last-char [char] ] = and
+;
 
 : starts-with ( loc-n count-n loc-h -- t/f)
 		swap 0 do \ loc-n loc-h

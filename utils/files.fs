@@ -3,6 +3,7 @@ needs strings.fs
 256 constant max-line
 struct
 		cell% field input-file-line-buffer
+		cell% field input-file-line-orig-buffer
 		cell% field input-file-line-buffer-len
 		cell% field input-file-fd
 		cell% field input-file-line-pos
@@ -11,6 +12,24 @@ end-struct input-file
 
 variable input-file-stack
 0 input-file-stack !
+
+: input-file-get-orig-line ( -- loc len )
+		input-file-stack @
+		dup input-file-line-orig-buffer @ swap
+		input-file-line-buffer-len @
+;
+
+: input-file-current-line-buffer-loc ( -- loc )
+		input-file-stack @ dup
+		input-file-line-pos @ swap
+		input-file-line-buffer @ +
+;
+
+: input-file-current-line-orig-buffer-loc ( -- loc )
+		input-file-stack @ dup
+		input-file-line-pos @ swap
+		input-file-line-orig-buffer @ +
+;
 
 : push-input-file ( addr u -- )
 		\ open file
@@ -21,6 +40,10 @@ variable input-file-stack
 		input-file-fd ! \ mem
 		max-line 2 + allocate throw \ mem buffer
 		over input-file-line-buffer !
+
+		max-line 2 + allocate throw \ orig buffer
+		over input-file-line-orig-buffer !
+
 		0 over input-file-line-pos !
 		\ get current top of stack
 		input-file-stack @
@@ -37,7 +60,8 @@ variable input-file-stack
 		\ close the file on the top of the stack
 		dup input-file-fd @ close-file throw
 		\ free the buffer
-		dup input-file-line-buffer free throw
+		dup input-file-line-buffer @ free throw
+		dup input-file-line-orig-buffer @ free throw
 		\ get the 2nd in stack
 		input-file-next @
 		input-file-stack !
@@ -124,7 +148,14 @@ variable input-file-stack
 		r@ input-file-line-buffer @ max-line erase
 		r@ input-file-line-buffer @ max-line
 		r@ input-file-fd @ read-line throw
-		over r> input-file-line-buffer-len !
+		over r@ input-file-line-buffer-len !
+
+		\ copy line buffer to orig (as a backup after upper casing)
+		 r@ input-file-line-buffer @ 
+		 r@ input-file-line-orig-buffer @
+		 max-line cmove
+
+		r> drop
 ;
 
 : eat-whitespace ( -- ) \ advance file-line-pos until next non-whitespace
@@ -140,12 +171,17 @@ variable input-file-stack
 		r> drop
 ;
 
+\ subtracts amount from input-line-pos
+: file-line-rewind ( amount -- )
+		input-file-line-pos @ swap -
+		input-file-line-pos !
+;
+
 : get-next-token ( -- loc count ) \ find the next whitespace/null delimited token in the file line
 		eat-whitespace \ clear out any leading whitespace
 		input-file-stack @ >r
 		\ store the loc and the initial size
-		r@ input-file-line-pos @
-		r@ input-file-line-buffer @ + \ file-line-buffer+pos
+		input-file-current-line-buffer-loc
 		0 
 		begin
 				2dup + c@ \ loc count [loc+count]
@@ -160,3 +196,28 @@ variable input-file-stack
 		\ file-line-pos @ over + file-line-pos ! \ loc count
 		dup r> input-file-line-pos +!
 ;
+
+\ find the next quoted string, leaving off both quotes
+: get-next-quoted-string ( -- loc count) 
+		eat-whitespace
+		input-file-stack @ >r
+		input-file-current-line-orig-buffer-loc
+
+		\ check if first char is "
+		dup c@
+		[char] " = not if
+				\ if not, return 0 length and exit
+				0 exit
+		else
+				1+ \ loc+1 
+		then
+		0 \ loc 0
+		begin
+				2dup + c@ \ loc count [loc+count]
+				[char] " = not
+		while
+						1+ \ loc size
+		repeat
+		dup r> input-file-line-pos +!
+;
+

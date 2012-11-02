@@ -38,3 +38,9 @@ variable cw,-len
 		create short allot
 ;
 
+\ swaps the bytes in a word
+: short-swap-endian ( w1 -- w2 )
+		dup 0xFF and 8 lshift
+		swap 0xFF00 and 8 rshift
+		or
+;

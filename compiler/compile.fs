@@ -278,10 +278,20 @@ end-struct code-label
 		then
 ;
 
-: process-dat ( loc size -- codelistentry )
-		." Processing data" cr
-		\ loc size just has dat stored in it...
-		2drop
+: is-dat-string? ( -- t/f )
+		eat-whitespace
+		input-file-current-line-orig-buffer-loc
+		c@ [char] " =
+;
+
+: is-dat-array? ( -- t/f )
+		get-next-token \ get the token
+		dup file-line-rewind \ rewind to before the token
+		square-bracketed?
+;
+
+\ dat-getters are all ( -- size )
+: dat-get-nums
 		0 >r \ store the current number of dat fields
 		begin
 				get-next-token dup while \ loc count
@@ -295,6 +305,45 @@ end-struct code-label
 						r> 1+ >r
 		repeat \ loc 0
 		2drop
+		r> \ count
+;
+\ get and store the next string
+: dat-get-string
+		get-next-quoted-string \ loc size
+		2dup + 0 swap c! \ add null at end
+		1+ \ add null to count
+		dup 2 mod 0 = if
+				\ even, just divide
+				2 /
+		else
+				\ odd , divide and add 1
+				2 / 1+
+		then
+		\ loc size(shorts)
+		tuck \ size loc size
+		0 do
+				dup i shorts + w@
+				short-swap-endian
+				i dat-buffer w!
+		loop
+		drop \ size
+;
+\ next token is [<size>]
+: dat-get-array
+;
+
+: process-dat ( loc size -- codelistentry )
+		." Processing data" cr
+		\ loc size just has dat stored in it...
+		2drop
+
+		is-dat-string? if
+				dat-get-string
+		else
+				dat-get-nums
+		then
+		>r
+
 		get-codelistentry \ cle
 		dup codelistentry-type CODELISTENTRY-TYPE_DATA swap !
 		\ make storage for count + data
@@ -307,7 +356,6 @@ end-struct code-label
 		swap
 		r> shorts \ cle src dest count
 		cmove
-		dup codelistentry-data @ 3 shorts dump
 ;
 
 : process-include ( loc size -- 0 )

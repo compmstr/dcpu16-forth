@@ -35,4 +35,6 @@ RFI 0
 :screen-mem-loc
 dat 0xB800
 
+dat "Hello, world!"
+
 :end

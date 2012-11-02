@@ -220,7 +220,7 @@ false screen-blink !
 				#386 0 do
 						i 32 mod
 						i 32 /
-						i ram-get
+						2 pick i + ram-get
 						screen-draw-character
 				loop
 

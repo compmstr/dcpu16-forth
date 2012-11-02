@@ -12,6 +12,17 @@ variable debug-mode
 		then
 ;
 
+: output-dword-binary ( dword -- )
+		32 0 do
+				dup 31 i - rshift 0x1 and
+				if
+						[char] 1 emit
+				else
+						[char] 0 emit
+				then
+		loop
+;
+
 \ output like .", only if debug-mode is non-0
 : .d"
 		[char] " parse

@@ -79,6 +79,18 @@ false screen-blink !
 		shorts screen-cur-pallette @ + w@
 ;
 
+\ turns a 4bit color (0xA) into the 8-bit equiv (0xAA)
+: num-4bit-to-8bit ( u -- u2 )
+		dup 4 lshift +
+;
+
+: color-4bit-to-8bit ( r4 g4 b4 -- r8 g8 b8 )
+		num-4bit-to-8bit
+		swap num-4bit-to-8bit
+		swap rot num-4bit-to-8bit
+		-rot
+;
+
 : pallette-entry->rgb ( color -- r g b )
 		>r
 		r@ 8 rshift 0xF and
@@ -88,7 +100,8 @@ false screen-blink !
 
 \ returns the sdl color for the pallette entry at index
 : get-pallette-color ( index -- sdl-color )
-		get-pallette-entry pallette-entry->rgb sdl-rgb
+		get-pallette-entry pallette-entry->rgb
+		color-4bit-to-8bit sdl-rgb
 ;
 
 : load-default-font
@@ -106,12 +119,18 @@ false screen-blink !
 		load-default-pallette
 		screen-default-pallette screen-cur-pallette !
 		\ set screen to refresh (display) in 1 second
-		1000000 utime d>s screen-last-refresh !
+		1000000 utime d>s + screen-last-refresh !
 		false screen-blink !
 		0 screen-last-blink !
 		sdl-active? false = if
 				start-sdl
 		then
+;
+
+: get-font-char ( char -- loc )
+		4 * \ dwords (4 bytes *)
+		screen-cur-font @
+		+ int@
 ;
 
 : screen-mem-map ( -- )
@@ -131,16 +150,11 @@ false screen-blink !
 		then
 ;
 
-\ turns a 4bit color (0xA) into the 8-bit equiv (0xAA)
-: num-4bit-to-8bit ( u -- u2 )
-		dup 4 lshift +
-;
-
-: color-4bit-to-8bit ( r4 g4 b4 -- r8 g8 b8 )
-		num-4bit-to-8bit
-		swap num-4bit-to-8bit
-		swap rot num-4bit-to-8bit
-		-rot
+: generate-screen-char ( fg bg blink? char -- word )
+		0x7f and \ limit char to 7 bits
+		swap 0x1 and 7 lshift + \ blink?char
+		swap 0xF and 8 lshift + \ bgblink?char
+		swap 0xF and 12 lshift + \ word
 ;
 
 \ convert lem coords to SDL screen
@@ -151,8 +165,7 @@ false screen-blink !
 ;
 
 \ takes in a screen x/y and 4-bit r g b values
-: draw-screen-pixel ( x y r g b -- )
-		color-4bit-to-8bit sdl-rgb \ x y rgb
+: draw-screen-pixel ( x y color -- )
 		-rot \ rgb x y
 		screen->display
 		screen-pixel-size screen-pixel-size
@@ -172,12 +185,43 @@ false screen-blink !
 		0x80 and
 ;
 
+: character-color ( word bits bit -- color )
+		31 swap - rshift 0x1 and \ word t/f(fg?/bg?)
+		if
+				screen-word-fg
+		else
+				screen-word-bg
+		then
+		get-pallette-color
+;
+
 : screen-draw-character ( col row word -- )
-		
+		dup screen-word-blink?
+		screen-blink @ and if
+				\ don't draw if blink is turned on and this char is blinking
+				exit
+		then
+
+		-rot \ word col row
+
+		8 * swap 4 * swap \ word x y
+		rot \ x y word
+
+		dup screen-word-char get-font-char \ x y word bits
+
+		32 0 do
+				2dup i character-color \ x y word bits color
+				4 pick 4 pick \ x y word bits color x y
+				8 i 8 mod - + \ ... x y+(8 - i % 8)
+				swap i 8 / + swap \ ... x+(i / 8) y(px)
+				rot \ x(px) y(px) color
+				draw-screen-pixel
+		loop
+		2drop 2drop
 ;
 
 : refresh-display ( cur-time[ns] -- )
-		screen-last-refresh @ screen-refresh-timeout + > if
+		screen-last-refresh @ screen-refresh-timeout + < if
 				\ draw the characters
 				sdl-clear-black
 

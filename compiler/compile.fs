@@ -9,7 +9,7 @@ needs tokenval.fs
 needs codelistentry.fs
 
 \ storage for dat fields while parsing
-#256 array dat-buffer
+#256 short-array dat-buffer
 
 variable code-buffer
 0 code-buffer !
@@ -288,9 +288,9 @@ end-struct code-label
 						\ remove comma
 						remove-trailing-comma
 						\ convert to number
-						string->number
+						string->number \ data
 						\ store in data buffer
-						r@ dat-buffer !
+						r@ dat-buffer w!
 						\ increment count
 						r> 1+ >r
 		repeat \ loc 0
@@ -298,15 +298,16 @@ end-struct code-label
 		get-codelistentry \ cle
 		dup codelistentry-type CODELISTENTRY-TYPE_DATA swap !
 		\ make storage for count + data
-		r@ 1+ cells allocate throw \ cle loc
+		r@ 1+ shorts allocate throw \ cle loc
 		dup 2 pick codelistentry-data ! \ cle loc
-		r@ over ! \ cle loc
-		1 cells + \ cle loc+1
+		r@ over w! \ cle loc
+		1 shorts + \ cle loc+1
 		\ copy the memory over
 		0 dat-buffer \ cle dest src
 		swap
-		r> \ cle src dest count
-		move
+		r> shorts \ cle src dest count
+		cmove
+		dup codelistentry-data @ 3 shorts dump
 ;
 
 : process-include ( loc size -- 0 )

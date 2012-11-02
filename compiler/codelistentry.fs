@@ -40,7 +40,7 @@ end-struct codelistentry
 				endof
 				codelistentry-type_data of
 						." Data codelistentry-size" cr
-						codelistentry-data @ @ \ get first entry of array
+						codelistentry-data @ w@ \ get first entry of array
 				endof
 		endcase
 ;
@@ -155,11 +155,10 @@ variable codelistentry-encode-size
 		." Encode data" cr
 		codelistentry-data @ \ data
 		\ need push items onto stack in reverse
-		dup @ \ data count
+		dup w@ \ data count
 		dup >r
-		swap 1+ swap \ data+1 count
 		begin
-				2dup cells + @ \ data+1 count word
+				2dup shorts + w@ \ data+1 count word
 				-rot \ word data+1 count
 				1-
 		dup 0 = until

@@ -100,6 +100,7 @@ hex
 		." IA:0x" VM_IA-get . space
 		." SP:0x" VM_SP-get . cr
 		." Cycles: 0x" vm_cycles @ . cr
+		." Mem loc: 0x" #116 ram-get . cr
 base !
 ;
 

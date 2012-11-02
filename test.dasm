@@ -13,6 +13,7 @@ HWI [clock-hw]
 ;turn on the screen
 JSR find-screen
 SET A, 0
+SET [screen-mem-loc], 0xB800
 SET B, [screen-mem-loc]
 HWI [screen-hw]
 
@@ -27,16 +28,13 @@ JSR tick-wait
 
 SET PC, end
 
-#include util.dasm
-
 ; interrupt handler
 :int-handler
 RFI 0
 
+#include util.dasm
+
 :screen-mem-loc
 dat 0xB800
-
-:variable
-dat 0x0000, 0x0000
 
 :end

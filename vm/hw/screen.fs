@@ -133,15 +133,6 @@ false screen-blink !
 		+ int@
 ;
 
-: screen-mem-map ( -- )
-		REG_B reg-get 
-		screen-cur-mem @ 0 = \ REG_B =0
-		over 0 <> and if \ REG_B =0&B<>0
-				init-screen
-		then
-		screen-cur-mem !
-;
-
 : update-blink ( cur-time[ns] -- )
 		screen-last-blink @ screen-blink-timeout + > if
 				." blink" cr
@@ -262,7 +253,7 @@ false screen-blink !
 		then
 		screen-cur-mem w!
 ;
-: screen-int-mem-map--font
+: screen-int-mem-map-font
 ;
 : screen-int-mem-map-pallette
 ;
@@ -275,7 +266,7 @@ false screen-blink !
 
 create screen-int-handlers
 ' screen-int-mem-map ,
-' screen-int-mem-map--font ,
+' screen-int-mem-map-font ,
 ' screen-int-mem-map-pallette ,
 ' screen-int-set-border-color ,
 ' screen-int-mem-dump-font ,

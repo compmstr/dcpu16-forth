@@ -5,79 +5,37 @@ INT 0x08
 ;use a variable
 JSR find-clock
 
+;turn on the clock
 SET A, 0
-SET B, 1 
+SET B, 90 
 HWI [clock-hw]
 
-; basic ops
-SET A, 0x30
-SET [0x1000], 0x20
-SUB A, [0x1000]
-IFN A, 0x10
+;turn on the screen
+JSR find-screen
+SET A, 0
+SET B, [screen-mem-loc]
+HWI [screen-hw]
+
+;Encode the character B
+SET A, 66
+JSR generate-char
+SET B, [screen-mem-loc]
+SET [B], A
+SET [0xB801], A
+
+JSR tick-wait
+
 SET PC, end
 
-; do a loopy thing
-SET I, 10
-SET A, 0x2000
-:loop
-SET [0x2000+I], [A]
-SUB I, 1
-IFN I, 0
-SET PC, loop
+#include util.dasm
 
-; Test ops
-SET A, 0x10
-SET B, 0x20
-ADD B, A
-; 0x30
-DIV B, A
-; 0x3
-MUL B, A
-; 0x30
-
-;wait for a tick
-:tick-wait
-SET A, 1
-HWI [clock-hw]
-IFE 0x00, C
-  SET PC, tick-wait
-
-;Call a subroutine
-SET X, 0x4
-INT 0x04
-JSR testsub
-SET PC, end
-
-:testsub
-SHL X, 4
-SET PC, POP
-
-:find-clock
-HWN I
-:find-clock-loop
-  IFE I, 0x00
-    SET PC, find-clock-end
-  HWQ I
-  IFN A, 0xB402
-    SET PC, find-clock-loop-end
-  IFN B, 0x12D0
-    SET PC, find-clock-loop-end
-  SET [clock-hw], I
-  SET PC, find-clock-end
-:find-clock-loop-end
-  SUB I, 1
-  SET PC, find-clock-loop
-:find-clock-end
-  SET PC, POP
-
-; interrupt handler, sets the message * 5 into X, currently
+; interrupt handler
 :int-handler
-SET X, A
-MUL X, 5
 RFI 0
 
-:clock-hw
-dat 0x0000
+:screen-mem-loc
+dat 0xB800
+
 :variable
 dat 0x0000, 0x0000
 

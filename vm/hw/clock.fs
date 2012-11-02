@@ -69,7 +69,7 @@ variable clock-timeout
 				\ find out how many ticks this is
 				swap / \ tick-count
 				0 ?do
-						." tick" cr
+						." tick" . cr
 						utime d>s clock-last-tick !
 						1 clock-ticks +!
 						clock-int-message @

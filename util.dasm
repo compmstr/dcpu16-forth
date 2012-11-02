@@ -35,3 +35,49 @@ IFE I, 0x00
   SET [X], 0x00
 :hw-find-end
   SET PC, POP
+
+;find the clock
+:find-clock
+SET A, 0xB402
+SET B, 0x12D0
+SET C, clock-hw
+SET I, 0x00
+JSR hw-find
+SET PC, POP
+
+;wait for a tick
+:tick-wait
+SET A, 1
+HWI [clock-hw]
+IFE 0x00, C
+  SET PC, tick-wait
+SET PC, POP
+
+:find-dumper
+SET A, 0x1337
+SET B, 0xB00B
+SET C, dumper-hw
+SET I, 0x00
+JSR hw-find
+SET PC, POP
+
+:find-screen
+SET A, 0xF615
+SET B, 0x7349
+SET C, screen-hw
+SET I, 0x00
+JSR hw-find
+SET PC, POP
+
+;Generates a screen char with white on black bg
+;Pass in the character to generate in A
+:generate-char
+ADD A, 0xF000
+SET PC, POP
+
+:clock-hw
+dat 0x0000
+:dumper-hw
+dat 0x0000
+:screen-hw
+dat 0x0000

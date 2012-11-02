@@ -221,7 +221,7 @@ false screen-blink !
 ;
 
 : refresh-display ( cur-time[ns] -- )
-		screen-last-refresh @ screen-refresh-timeout + < if
+		screen-last-refresh @ screen-refresh-timeout + > if
 				\ draw the characters
 				sdl-clear-black
 
@@ -248,8 +248,46 @@ false screen-blink !
 		dup update-blink
 		refresh-display
 ;
-: screen-hw-int-handler
+
+: screen-int-mem-map
+		REG_B reg-get 
+		screen-cur-mem @ 0 = \ REG_B =0
+		over 0 <> and if \ REG_B =0&B<>0
+				init-screen
+		else
+				sdl-active? if
+						sdl-clear-black
+						sdl-flip-screen
+				then
+		then
+		screen-cur-mem w!
 ;
+: screen-int-mem-map--font
+;
+: screen-int-mem-map-pallette
+;
+: screen-int-set-border-color
+;
+: screen-int-mem-dump-font
+;
+: screen-int-mem-dump-pallette
+;
+
+create screen-int-handlers
+' screen-int-mem-map ,
+' screen-int-mem-map--font ,
+' screen-int-mem-map-pallette ,
+' screen-int-set-border-color ,
+' screen-int-mem-dump-font ,
+' screen-int-mem-dump-pallette ,
+
+: screen-hw-int-handler
+		." Screen HW Int" cr
+		REG_A reg-get \ A
+		cells screen-int-handlers + @
+		execute
+;
+
 : screen-get-hw-info
 		\ ID low/high word
 		0xF615 REG_A reg-set

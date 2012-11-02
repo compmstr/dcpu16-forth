@@ -76,6 +76,7 @@ variable debug-mode
 				over - \ ns start-time diff
 				2 pick < while
 		repeat
+		2drop
 ;
 
 \ frees a passed in addr if it's not zero

@@ -1,6 +1,8 @@
 Implement #includes for asm
   - Ignore already included files ( set at beginning of parse to avoid recursive includes )
-Implement dat strings
+Implement dat strings dat "..."
+Implement dat arrays  dat [<size>]
 
-Implement screen using SDL?
+Implement screen using SDL? *most likely done*
   Do blitting manually due to requirement of having other fonts
+Implement keyboard using SDL

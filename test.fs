@@ -14,4 +14,4 @@ init-screen
 ;
 print-chars
 
-0 refresh-display
+utime d>s 0x10000000 + refresh-display

@@ -22,6 +22,12 @@ JSR generate-char
 SET B, [screen-mem-loc]
 SET [B], A
 
+SET A, 67
+JSR generate-char
+SET B, [screen-mem-loc]
+ADD B, 1
+SET [B], A
+
 JSR tick-wait
 
 SET PC, end

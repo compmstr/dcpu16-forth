@@ -3,14 +3,14 @@ needs util.fs
 \ copy the string at loc to a count-prefixed string at new-loc
 : copy-string ( loc count new-loc -- )
 		swap \ loc new-loc count
-		2dup swap c! \ loc new-loc count
-		swap 1+ \ loc count new-loc+1
+		2dup swap ! \ loc new-loc count
+		swap cell+ \ loc count new-loc+1
 		swap \ loc new-loc+1 count
-		move
+		cmove
 ;
 \ allocate and copy string over
 : save-string ( loc count -- new-loc )
-		dup allocate throw
+		dup cell+ allocate throw
 		-rot 2 pick
 		copy-string
 ;
@@ -18,8 +18,8 @@ needs util.fs
 
 \ turn a counted string (pointer to <loc> <string> ), into a loc count pair
 : get-counted-string ( loc -- loc count )
-		dup 1+ swap \ loc+1 loc
-		c@ \ loc+1 count
+		dup cell+ swap \ loc+1 loc
+		@ \ loc+1 count
 ;
 
 \ generates a hash for a string
@@ -43,9 +43,8 @@ needs util.fs
 
 \ prints a <count> <string> string
 : print-string ( loc -- )
-		\ get count
-		dup c@ swap 1+ \ count loc+1
-		swap type
+		get-counted-string
+		type
 ;
 
 \ tab
@@ -268,7 +267,7 @@ needs util.fs
 \ returns counted string
 : input$ ( -- addr$ )
 		256 allocate throw
-		dup 1+ 255 accept
-		over c!
+		dup cell+ 255 accept
+		over !
 ;
 

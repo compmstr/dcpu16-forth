@@ -19,6 +19,7 @@ c-function sdl-map-rgb               SDL_MapRGB              a n n n -- n    ( p
 c-function sdl-lock-surface          SDL_LockSurface         a -- n          ( surface -- error )
 c-function sdl-unlock-surface        SDL_UnlockSurface       a -- void       ( surface -- )
 c-function sdl-flip                  SDL_Flip                a -- n          ( surface -- error )
+c-function sdl-get-key-state		 SDL_GetKeyState         a -- a          ( *numkeys -- Uint8 *keys )
 
 end-c-library
 

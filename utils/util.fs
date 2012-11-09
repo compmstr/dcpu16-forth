@@ -96,3 +96,10 @@ variable debug-mode
 				drop
 		then
 ;
+
+: inside? ( val high low -- t/f )
+		2 pick \ val high low val
+		<= -rot \ low<val val high
+		<= and
+;
+

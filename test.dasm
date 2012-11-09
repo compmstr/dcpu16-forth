@@ -45,6 +45,14 @@ JSR print-string
 
 JSR tick-wait
 
+;Do some signed math
+SET A, -1
+SET B, 5
+MLI B, A
+SET X, 1
+SET Y, 5
+MLI Y, X
+
 SET PC, end
 
 ;echo the key in C to the memory loc

@@ -247,10 +247,12 @@ defer get-font-char
 				129 i 1+ 2 pick
 				draw-screen-pixel
 		loop
+		drop \ drop color
 ;
 
 : refresh-display ( cur-time[ns] -- )
 		screen-last-refresh @ screen-refresh-timeout + > if
+				.d" Refreshing display"
 				\ draw the characters
 				sdl-clear-black
 
@@ -261,6 +263,7 @@ defer get-font-char
 						2 pick i + ram-get
 						screen-draw-character
 				loop
+				drop
 
 				screen-draw-border
 

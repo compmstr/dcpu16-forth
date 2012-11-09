@@ -49,7 +49,7 @@ SET PC, POP
 :tick-wait
 SET A, 1
 HWI [clock-hw]
-IFE 0x00, C
+IFL C, 0x02
   SET PC, tick-wait
 SET PC, POP
 

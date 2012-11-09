@@ -12,8 +12,9 @@ sdl-event% %alloc value evt
 		evt sdl-poll-event if
 				evt sdl-event-type c@
 				sdl-event-key-down = if
-						." Key Press" cr
+						." Key Press: "
 						evt sdl-event-key sdl-keyboard-event-keysym @ 
+						emit cr
 				then
 		then
 ;

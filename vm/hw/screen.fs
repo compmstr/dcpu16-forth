@@ -28,7 +28,7 @@ false screen-blink !
 
 4 value screen-pixel-size
 
-1 value screen-border-color
+0 value screen-border-color
 1 value border-width
 
 

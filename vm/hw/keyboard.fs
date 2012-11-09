@@ -3,7 +3,19 @@ needs ../../utils/util.fs
 needs ../../utils/shorts.fs
 needs ../vm.fs
 
+sdl-event% %alloc value evt
+
 : keyboard-updater
+		sdl-active? not if
+				start-sdl
+		then
+		evt sdl-poll-event if
+				evt sdl-event-type c@
+				sdl-event-key-down = if
+						." Key Press" cr
+						evt sdl-event-key sdl-keyboard-event-keysym @ 
+				then
+		then
 ;
 : keyboard-hw-int-handler
 ;

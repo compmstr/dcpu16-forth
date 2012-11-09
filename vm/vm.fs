@@ -19,9 +19,9 @@ needs hw.fs
 
 : vm-init-hw ( -- )
 		s" vm/hw/clock.fs"
-		s" vm/hw/clock.fs"
 		s" vm/hw/dumper.fs"
 		s" vm/hw/screen.fs"
+		s" vm/hw/keyboard.fs"
 		4
 		add-hw
 ;

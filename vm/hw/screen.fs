@@ -8,12 +8,10 @@ needs ../vm.fs
 variable screen-cur-mem
 0 screen-cur-mem !
 
-variable screen-cur-font
-0 screen-cur-font !
+0 value screen-cur-font
 0 value screen-default-font
 
-variable screen-cur-pallette
-0 screen-cur-pallette !
+0 value screen-cur-pallette
 0 value screen-default-pallette
 
 \ 30 hz screen refresh
@@ -29,6 +27,10 @@ variable screen-blink
 false screen-blink !
 
 4 value screen-pixel-size
+
+0 value screen-border-color
+1 value border-width
+
 
 : pallette-entry ( r g b -- word )
 		0xF and \ r g b
@@ -73,11 +75,16 @@ false screen-blink !
 		0x0fff screen-default-pallette 0xF shorts + w!
 ;
 
-\ returns color entry from current pallette
-: get-pallette-entry ( index -- color )
-		0xF and \ limit index to 0xF
-		shorts screen-cur-pallette @ + w@
+: get-default-pallette-entry ( index -- color )
+		0xF and \ limit to 0xF
+		shorts screen-default-pallette + w@
 ;
+: get-mem-pallette-entry ( index -- color )
+ 		0xF and \ limit index to 0xF
+ 		screen-cur-pallette + ram-get
+;
+defer get-pallette-entry
+' get-default-pallette-entry is get-pallette-entry
 
 \ turns a 4bit color (0xA) into the 8-bit equiv (0xAA)
 : num-4bit-to-8bit ( u -- u2 )
@@ -115,9 +122,9 @@ false screen-blink !
 
 : init-screen
 		load-default-font
-		screen-default-font screen-cur-font !
+		screen-default-font to screen-cur-font
 		load-default-pallette
-		screen-default-pallette screen-cur-pallette !
+		screen-default-pallette to screen-cur-pallette
 		\ set screen to refresh (display) in 1 second
 		1000000 utime d>s + screen-last-refresh !
 		false screen-blink !
@@ -127,11 +134,21 @@ false screen-blink !
 		then
 ;
 
-: get-font-char ( char -- loc )
-		4 * \ dwords (4 bytes *)
-		screen-cur-font @
+: get-default-font-char ( char -- int )
+		4 * \ dwords*
+		screen-default-font
 		+ int@
 ;
+: get-mem-font-char ( char -- int )
+		2 * \ double the words
+		screen-cur-font
+		dup ram-get \ loc high
+		16 lshift \ loc high<<16
+		swap 1+ ram-get + \ high<<16+low
+;
+
+defer get-font-char
+' get-default-font-char is get-font-char
 
 : update-blink ( cur-time[ns] -- )
 		screen-last-blink @ screen-blink-timeout + > if
@@ -195,7 +212,8 @@ false screen-blink !
 
 		-rot \ word col row
 
-		8 * swap 4 * swap \ word x y
+		8 * border-width + swap
+		4 * border-width + swap \ word x y
 		rot \ x y word
 
 		dup screen-word-char get-font-char \ x y word bits
@@ -211,8 +229,30 @@ false screen-blink !
 		2drop 2drop
 ;
 
+: screen-draw-border ( -- )
+		\ 130 x 98 box
+		\ get color
+		screen-border-color get-pallette-color
+		\ draw top/bottom
+		130 0 do
+				i 0 2 pick
+				draw-screen-pixel
+				i 98 2 pick
+				draw-screen-pixel
+		loop
+		\ draw sides
+		97 0 do
+				0 i 1+ 2 pick
+				draw-screen-pixel
+				129 i 1+ 2 pick
+				draw-screen-pixel
+		loop
+		drop \ drop color
+;
+
 : refresh-display ( cur-time[ns] -- )
 		screen-last-refresh @ screen-refresh-timeout + > if
+				.d" Refreshing display"
 				\ draw the characters
 				sdl-clear-black
 
@@ -223,6 +263,9 @@ false screen-blink !
 						2 pick i + ram-get
 						screen-draw-character
 				loop
+				drop
+
+				screen-draw-border
 
 				sdl-flip-screen
 				utime d>s screen-last-refresh !
@@ -254,10 +297,22 @@ false screen-blink !
 		screen-cur-mem w!
 ;
 : screen-int-mem-map-font
+		REG_B reg-get
+		dup 0 = if
+				['] get-default-font-char is get-font-char
+		else
+				['] get-mem-font-char is get-font-char
+		then
+		to screen-cur-font
 ;
 : screen-int-mem-map-pallette
+		REG_B reg-get
+		to screen-border-color
 ;
 : screen-int-set-border-color
+		REG_B reg-get
+		0xF and
+		to screen-border-color
 ;
 : screen-int-mem-dump-font
 ;

@@ -49,7 +49,7 @@ SET PC, POP
 :tick-wait
 SET A, 1
 HWI [clock-hw]
-IFE 0x00, C
+IFL C, 0x02
   SET PC, tick-wait
 SET PC, POP
 
@@ -69,10 +69,55 @@ SET I, 0x00
 JSR hw-find
 SET PC, POP
 
+:find-keyboard
+SET A, 0x7406
+SET B, 0x30CF
+SET C, keyboard-hw
+SET I 0x00
+JSR hw-find
+SET PC, POP
+
 ;Generates a screen char with white on black bg
 ;Pass in the character to generate in A
 :generate-char
-ADD A, 0xF000
+ADD A, [char-color]
+SET PC, POP
+
+;Prints a string out
+;X/Y are col/row to start at
+;A is loc of string (null term)
+;B is start of screen memory
+:print-string
+SET I, X
+MUL Y, 0x20
+ADD I, Y
+ADD I, B
+SET J, A
+:print-string-loop
+	SET A, [J]
+	JSR get-high-byte
+	IFE A, 0
+		SET PC, print-string-end
+	JSR generate-char
+	SET [I], A
+	;2nd char
+	SET A, [J]
+	JSR get-low-byte
+	IFE A, 0
+		SET PC, print-string-end
+	JSR generate-char
+	ADD I, 1
+	SET [I], A
+	STI PC, print-string-loop
+:print-string-end
+SET PC, POP
+
+:get-low-byte
+AND A, 0xFF
+SET PC, POP
+:get-high-byte
+AND A, 0xFF00
+SHR A, 0x8
 SET PC, POP
 
 :clock-hw
@@ -80,4 +125,8 @@ dat 0x0000
 :dumper-hw
 dat 0x0000
 :screen-hw
+dat 0x0000
+:char-color
+dat 0xF000
+:keyboard-hw
 dat 0x0000

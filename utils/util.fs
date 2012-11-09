@@ -129,3 +129,9 @@ variable debug-mode
 : 2sw>uw ( sw1 sw2 -- uw1 uw2 )
 		sw>uw swap sw>uw swap
 ;
+
+: inside? ( val high low -- t/f )
+		2 pick \ val high low val
+		<= -rot \ low<val val high
+		<= and
+;

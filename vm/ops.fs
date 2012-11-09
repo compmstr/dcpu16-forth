@@ -67,7 +67,15 @@ needs specialops.fs
 		swap vmloc-set
 ;
 : run-OP_MLI ( a b -- ) \ like MUL, but signed
+		.d" OP_MLI"
 		2 vm-cycles-add
+		op-get-b-and-vals \ b b-val a-val
+		2uw>sw \ b b-val(signed) a-val(signed)
+		*
+		dup 16 rshift 0xFFFF and \ b b*a EX
+		VM_EX-set
+		sw>uw
+		swap vmloc-set
 ;
 : run-OP_DIV ( a b -- ) \ sets b to b/a, sets EX to ((b<<16)/a)&0xFFFF. if a==0, sets b, EX to 0
 		.d" OP_DIV"

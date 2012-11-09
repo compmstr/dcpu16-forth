@@ -162,7 +162,8 @@ needs util.fs
 
 : decimal-digit? ( char -- t/f )
 		dup [char] 0 >=
-		swap [char] 9 <= and
+		swap dup [char] 9 <= and
+		swap [char] - = or
 ;
 : hex-digit? ( char -- t/f )
 		dup decimal-digit?
@@ -202,6 +203,10 @@ needs util.fs
 		\ try to convert the number
 		s>number? drop \ drop flag, it will just return 0
 		d>s
+		\ if signed, convert to an unsignedword
+		dup 0< if
+				sw>uw
+		then
 ;
 
 \ takes off the first and last chars of a string

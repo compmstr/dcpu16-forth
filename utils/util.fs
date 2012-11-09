@@ -12,15 +12,24 @@ variable debug-mode
 		then
 ;
 
-: output-dword-binary ( dword -- )
-		32 0 do
-				dup 31 i - rshift 0x1 and
+: output-bits-binary ( n bits -- )
+		dup 0 do \ n bits
+				2dup 1- i - rshift 0x1 and \ check if bit is set
 				if
 						[char] 1 emit
 				else
 						[char] 0 emit
 				then
 		loop
+		2drop
+;
+
+: output-dword-binary ( dword -- )
+		32 output-bits-binary
+;
+
+: output-word-binary ( word -- )
+		16 output-bits-binary
 ;
 
 \ output like .", only if debug-mode is non-0
@@ -95,4 +104,28 @@ variable debug-mode
 		else
 				drop
 		then
+;
+
+\ signed/unsigned word conversions
+: uw>sw ( uw -- sw )
+		dup 0x7FFF and \ uw w
+		swap 0x8000 and \ w neg?
+		if
+				negate
+		then
+;
+: sw>uw ( sw -- uw )
+		dup 0< if
+				negate
+				0x8000 or
+				0xFFFF and
+		else
+				0x7FFF and
+		then
+;
+: 2uw>sw ( uw1 uw2 -- sw1 sw2 )
+		uw>sw swap uw>sw swap
+;
+: 2sw>uw ( sw1 sw2 -- uw1 uw2 )
+		sw>uw swap sw>uw swap
 ;

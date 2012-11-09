@@ -238,6 +238,10 @@ end-struct code-label
 		starts-with
 ;
 
+: is-line-macro-invoke ( loc size -- loc size t/f )
+		over c@ [char] ( =
+;
+
 : process-op ( loc size -- codelistentry )
 		." Processing op: " 2dup type cr
 		2dup op-table find-op \ loc size op
@@ -365,32 +369,48 @@ end-struct code-label
 		open-input
 ;
 
+: skip-line ( loc len -- 0 )
+		2drop 0
+;
+
+: next-line-processor ( cur loc size -- next loc size )
+		rot 2 cells + -rot
+;
+: line-processor-predicate? ( cur loc size -- cur loc size t/f )
+		2 pick @ dup 0 = if
+				drop TRUE
+		else
+				execute
+		then
+;
+: line-processor-execute ( cur loc size -- codelistentry/0 )
+		rot cell+ @ execute
+;
+
+create line-processors
+' is-line-comment , ' skip-line ,
+' is-line-blank , ' skip-line ,
+' is-line-label , ' store-label ,
+' is-line-dat , ' process-dat ,
+' is-line-include , ' process-include ,
+0 , ' process-op ,
+
 : process-line ( u2 -- <codelistentry or 0> )
 		." Processing line: "
 		print-current-line-buffer cr
 		uppercase-input-buffer
 		drop \ don't need the length after this
 		get-next-token \ loc size
-		is-line-comment >r \ loc size
-		is-line-blank r> \ loc size blank? comment?
-		or if
-				\ skip
-				2drop 0
-		else
-				is-line-label if
-						store-label
+		\ run through the line processors
+		line-processors -rot \ procs loc size
+		begin
+				line-processor-predicate? if
+						line-processor-execute
+						exit
 				else
-						is-line-dat if
-								process-dat
-						else
-								is-line-include if
-										process-include
-								else
-										process-op
-								then
-						then
+						next-line-processor
 				then
-		then
+		again
 ;
 
 : encode-codelist ( -- )

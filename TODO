@@ -1,8 +1,15 @@
+Implement macros for asm
+  maybe refactor assembler to be extensible...
+      Would check for .macro word at start
+      Would look for .endmacro for end
+      Target \# for arguments
+      Calling would be (<name>,arg1,arg2,arg3)
+      ex macro:
+        .macro <name>
+          SET PUSH, \1
+          SET \1, [\2]
+        .endmacro
+      Simple text replacement
 Implement #includes for asm
   - Ignore already included files ( set at beginning of parse to avoid recursive includes )
-Implement dat strings dat "..."
 Implement dat arrays  dat [<size>]
-
-Implement screen using SDL? *most likely done*
-  Do blitting manually due to requirement of having other fonts
-Implement keyboard using SDL

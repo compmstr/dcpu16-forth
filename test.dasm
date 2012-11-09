@@ -28,6 +28,12 @@ SET B, [screen-mem-loc]
 ADD B, 1
 SET [B], A
 
+SET X, 5
+SET Y, 5
+SET A, greeting
+SET B, [screen-mem-loc]
+JSR print-string
+
 JSR tick-wait
 
 SET PC, end
@@ -41,6 +47,7 @@ RFI 0
 :screen-mem-loc
 dat 0xB800
 
+:greeting
 dat "Hello, world!"
 
 :end

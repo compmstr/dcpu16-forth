@@ -76,11 +76,17 @@ create commands
 				." 2) Run" cr
 				." 3) Dump VM State" cr
 				." q) Quit" cr
+				." l) Leave menu" cr
 				." ---------------------------" cr
 				." > " key
 				page
 				[char] q over = if
+						drop
 						bye
+				then
+				[char] l over = if
+						drop
+						exit
 				then
 				[char] 1 -
 				dup 2 > if

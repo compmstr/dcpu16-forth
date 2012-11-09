@@ -35,6 +35,7 @@ needs hw.fs
 		0 VM_CYCLES !
 		0 to VM_START_TIME
 		vm-init-hw
+		vm-cycles-clear
 ;
 
 \ Standard opcodes

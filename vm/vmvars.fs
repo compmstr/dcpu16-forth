@@ -31,12 +31,33 @@ variable intq-size
 create vmloc_a vmloc %allot drop
 create vmloc_b vmloc %allot drop
 
+variable cycles-last-hz-print
+0 cycles-last-hz-print !
+variable time-last-hz-print
+utime d>s time-last-hz-print !
+
+: print-hz ( -- )
+		cycles-last-hz-print @ #100000 +
+		vm_cycles @
+		< if
+				utime d>s dup time-last-hz-print @ - 10 / . ." Hertz" cr
+				time-last-hz-print !
+				vm_cycles @ cycles-last-hz-print !
+		then
+;
+
 : vm-cycles-add ( n -- )
 		vm_cycles +!
+		print-hz
 ;
 
 : vm-cycles-inc ( -- )
 		1 vm-cycles-add
+;
+
+: vm-cycles-clear ( -- )
+		0 vm_cycles !
+		utime d>s time-last-hz-print !
 ;
 
 : clear-registers ( -- ) \ set all registers to 0

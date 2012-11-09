@@ -7,6 +7,7 @@ needs ../utils/util.fs
 needs op-convert-table.fs
 needs tokenval.fs
 needs codelistentry.fs
+needs preprocessor.fs
 
 \ storage for dat fields while parsing
 #256 short-array dat-buffer
@@ -112,7 +113,7 @@ end-struct code-label
 						dup >r
 						label-name @ get-counted-string \ sloc ssize lloc lsize
 						2over
-						compare 0= if \ sloc ssize
+						string= if \ sloc ssize
 								2drop r> exit
 						then
 						r> get-next-label

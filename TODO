@@ -1,4 +1,15 @@
 Implement macros for asm
+  Set up compiler to generate a temporary file with includes/macros taken care of
+    First pass (Macro finder)
+      take out macro definitions and store
+      when coming across an #include, look for macros in that too
+    Second pass (preprocessor)
+      echo contents, replace #include with file contents
+      replace macro invocations with code
+      save file as <filename>.gen
+    Third pass (compiler)
+      Current run, minus the #include stuff
+
   maybe refactor assembler to be extensible...
       Would check for .macro word at start
       Would look for .endmacro for end

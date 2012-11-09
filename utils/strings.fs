@@ -145,6 +145,16 @@ needs util.fs
 		then
 ;
 
+: string= ( loc1 count1 loc2 count2 -- t/f )
+		compare not
+;
+
+: cstring= ( cstring cstring -- t/f )
+		get-counted-string
+		rot get-counted-string
+		string=
+;
+
 : starts-with-cstring ( needle haystack -- t/f )
 		get-counted-string drop \ needle h-loc
 		swap get-counted-string rot \ n-loc n-count h-loc

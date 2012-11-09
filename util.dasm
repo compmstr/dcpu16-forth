@@ -69,6 +69,14 @@ SET I, 0x00
 JSR hw-find
 SET PC, POP
 
+:find-keyboard
+SET A, 0x7406
+SET B, 0x30CF
+SET C, keyboard-hw
+SET I 0x00
+JSR hw-find
+SET PC, POP
+
 ;Generates a screen char with white on black bg
 ;Pass in the character to generate in A
 :generate-char
@@ -120,3 +128,5 @@ dat 0x0000
 dat 0x0000
 :char-color
 dat 0xF000
+:keyboard-hw
+dat 0x0000

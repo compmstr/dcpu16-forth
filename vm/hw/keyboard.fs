@@ -13,6 +13,8 @@ variable key-buffer-start
 variable key-buffer-end
 0 key-buffer-end !
 
+0 value keyboard-int-msg
+
 : key-buffer-clear
 		key-buffer-end @
 		key-buffer-start !
@@ -42,72 +44,37 @@ variable key-buffer-end
 		key-buffer-empty? not if
 				key-buffer key-buffer-start @ + c@
 				1 key-buffer-start @ +
-				key-buffer-size mod key-buffer-end !
+				key-buffer-size mod key-buffer-start !
 		else
 				\ return 0 if empty
 				0
 		then
 ;
 
-: handle-special-keys ( c -- )
-		case
-				SDLK_BACKSPACE of
-						0x10 key-buffer-add
-				endof
-				SDLK_RETURN of
-						0x11 key-buffer-add
-				endof
-				SDLK_INSERT of
-						0x12 key-buffer-add
-				endof
-				SDLK_DELETE of
-						0x13 key-buffer-add
-				endof
-				SDLK_UP of
-						0x80 key-buffer-add
-				endof
-				SDLK_DOWN of
-						0x81 key-buffer-add
-				endof
-				SDLK_LEFT of
-						0x82 key-buffer-add
-				endof
-				SDLK_RIGHT of
-						0x83 key-buffer-add
-				endof
-				SDLK_LSHIFT of
-						0x90 key-buffer-add
-				endof
-				SDLK_RSHIFT of
-						0x90 key-buffer-add
-				endof
-				SDLK_LCTRL of
-						0x91 key-buffer-add
-				endof
-				SDLK_RCTRL of
-						0x91 key-buffer-add
-				endof
-		endcase
+\ if a key isn't between 0x20 and 0x7f, converts SDLK_<key>
+\   into the keyboard spec's keys
+: sdlk->key ( c -- c' )
+		dup 0x7F 0x20 inside? not if
+				case
+						SDLK_BACKSPACE of 0x10 endof
+						SDLK_RETURN of 0x11 endof
+						SDLK_INSERT of 0x12 endof
+						SDLK_DELETE of 0x13 endof
+						SDLK_UP of 0x80 endof
+						SDLK_DOWN of 0x81 endof
+						SDLK_LEFT of 0x82 endof
+						SDLK_RIGHT of 0x83 endof
+						SDLK_LSHIFT of 0x90 endof
+						SDLK_RSHIFT of 0x90 endof
+						SDLK_LCTRL of 0x91 endof
+						SDLK_RCTRL of 0x91 endof
+						0x0
+				endcase
+		then
+		." Key: " dup hex . decimal cr
 ;
 
-: keyboard-updater
-		sdl-active? not if
-				start-sdl
-		then
-		evt sdl-poll-event if
-				evt sdl-event-type c@
-				sdl-event-key-down = if
-						evt sdl-event-key sdl-keyboard-event-keysym int@ 
-						dup 0x7F 0x20 inside? if
-								key-buffer-add
-						else
-								handle-special-keys
-						then
-				then
-		then
-;
-
-: keyboard->sdlk ( c -- c )
+: key->sdlk ( c -- c' )
 		dup 0x7F 0x20 inside? not if
 				case
 						0x10 of SDLK_BACKSPACE endof
@@ -122,6 +89,33 @@ variable key-buffer-end
 						0x91 of SDLK_RCTRL endof
 						0x00
 				endcase
+		then
+;
+
+: keyboard-send-int ( -- )
+		keyboard-int-msg 0 over <> if
+				sw-interrupt
+		else
+				drop
+		then
+;
+
+: keyboard-updater
+		sdl-active? not if
+				start-sdl
+		then
+		evt sdl-poll-event if
+				evt sdl-event-type c@
+				sdl-event-key-down = if
+						evt sdl-event-key sdl-keyboard-event-keysym int@ 
+						sdlk->key
+						dup if
+								key-buffer-add
+								keyboard-send-int
+						else
+								drop
+						then
+				then
 		then
 ;
 
@@ -151,6 +145,7 @@ variable sdl-numkeys
 		then
 ;
 : keyboard-int-set-msg
+		REG_B reg-get to keyboard-int-msg
 ;
 
 create keyboard-int-handlers

@@ -16,6 +16,15 @@ SET A, 0
 SET B, [screen-mem-loc]
 HWI [screen-hw]
 
+;find the keyboard
+JSR find-keyboard
+SET A, 3
+SET B, 0x01
+HWI [keyboard-hw]
+SET A, 0
+SET B, 0x00
+HWI [keyboard-hw]
+
 ;Encode the character B
 SET A, 66
 JSR generate-char
@@ -38,13 +47,67 @@ JSR tick-wait
 
 SET PC, end
 
+;echo the key in C to the memory loc
+;  [screen-cur-pos], then increment that loc
+:echo-key
+SET PUSH, A
+SET PUSH, B
+
+SET A, C
+JSR generate-char
+SET B, [screen-cur-pos]
+SET [B], A
+ADD [screen-cur-pos], 1
+
+SET B, POP
+SET A, POP
+SET PC, POP
+; end echo-key
+
+;handle a keypress
+:key-handler
+SET PUSH, A
+SET PUSH, B
+SET PUSH, C
+
+;get the key
+:key-handle-loop
+	SET A, 0x01
+	HWI [keyboard-hw]
+	IFE C, 0x0
+		SET PC, key-handle-end
+	IFE C, 0x10
+		SET PC, key-handle-backspace
+	JSR echo-key
+	SET PC, key-handle-loop
+
+:key-handle-backspace
+SET PUSH, B
+SUB [screen-cur-pos], 1
+SUB B, [screen-cur-pos]
+SET [B], 0x0000
+SET B, POP
+SET PC, key-handle-loop
+
+:key-handle-end
+
+SET C, PUSH
+SET B, POP
+SET A, POP
+SET PC, POP
+;end key-handler
+
 ; interrupt handler
 :int-handler
+IFE A, 0x01
+	JSR key-handler
 RFI 0
 
 #include util.dasm
 
 :screen-mem-loc
+dat 0xB800
+:screen-cur-pos
 dat 0xB800
 
 :greeting

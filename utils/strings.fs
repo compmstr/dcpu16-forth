@@ -8,13 +8,36 @@ needs util.fs
 		swap \ loc new-loc+1 count
 		cmove
 ;
-\ allocate and copy string over
-: save-string ( loc count -- new-loc )
-		dup cell+ allocate throw
-		-rot 2 pick
-		copy-string
+
+\ allocates size of string + 1 cell
+: alloc-cstring ( size -- loc )
+		cell+ allocate throw
 ;
 
+\ allocate and copy string over
+: save-string ( loc count -- new-loc )
+		dup alloc-cstring dup >r
+		copy-string r>
+;
+
+\ copies the cstring text to newloc, doesn't copy the count
+: copy-cstring-contents ( src dest -- )
+		over @ rot cell+ -rot cmove
+;
+
+: cstring-len ( loc -- len )
+		@
+;
+
+\ appends two cstrings
+: append-cstring ( loc1 loc2 - loc3 )
+		\ add the two sizes
+		2dup @ swap @ + \ loc1 loc2 size
+		dup alloc-cstring >r
+		\ store the new size
+		r@ ! \ loc1 loc2
+		r@ copy-cstring-contents
+;
 
 \ turn a counted string (pointer to <loc> <string> ), into a loc count pair
 : get-counted-string ( loc -- loc count )

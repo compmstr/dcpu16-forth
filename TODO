@@ -8,6 +8,7 @@ Implement macros for asm
     test.dasm
       NEXT
     `m4 macros.m4 test.dasm > test.dasm.out`
+    -- s" m4 test.dasm > /tmp/test.dasm" system
   Set up compiler to generate a temporary file with includes/macros taken care of
     First pass (Macro finder)
       take out macro definitions and store

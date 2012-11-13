@@ -1,4 +1,13 @@
 Implement macros for asm
+  Maybe use M4 for macro:
+    macros.m4:
+      define(NEXT, `SET PC, POP
+      SET A, B
+      JSR X')
+      define(JUMP, `JSR $1') -- JUMP(A) -> JSR A
+    test.dasm
+      NEXT
+    `m4 macros.m4 test.dasm > test.dasm.out`
   Set up compiler to generate a temporary file with includes/macros taken care of
     First pass (Macro finder)
       take out macro definitions and store

@@ -1,3 +1,5 @@
+include(`forth_macros.m4')
+
 ;call an interrupt
 IAS int-handler
 INT 0x08

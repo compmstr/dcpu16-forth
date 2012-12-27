@@ -95,6 +95,10 @@ variable input-file-stack
 		then
 ;
 
+\ open a file after running it through m4 preprocessor
+: open-input-m4 ( addr u -- )
+
+;
 
 : open-input ( addr u -- )
 		push-input-file

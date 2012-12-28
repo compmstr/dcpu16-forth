@@ -9,6 +9,21 @@ needs util.fs
 		cmove
 ;
 
+\ concatenates two strings, allocates a new string
+: strcpy { str1 len1 str2 len2 -- str3 len3 }
+		len1 len2 + dup { len3 } allocate throw { str3 }
+		str1 str3 len1 cmove
+		str2 str3 len1 + len2 cmove
+		str3 len3
+;
+
+\ concatenates two strings, resizes existing area
+: strcat { str1 len1 str2 len2 -- str3 len3 }
+		str1 len1 len2 + dup { len3 } resize throw { str3 }
+		str2 str3 len1 + len2 cmove
+		str3 len3
+;
+
 \ allocates size of string + 1 cell
 : alloc-cstring ( size -- loc )
 		cell+ allocate throw

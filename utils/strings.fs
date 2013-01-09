@@ -1,12 +1,9 @@
 needs util.fs
 
 \ copy the string at loc to a count-prefixed string at new-loc
-: copy-string ( loc count new-loc -- )
-		swap \ loc new-loc count
-		2dup swap ! \ loc new-loc count
-		swap cell+ \ loc count new-loc+1
-		swap \ loc new-loc+1 count
-		cmove
+: copy-string { loc count new-loc -- }
+		count new-loc !
+		loc new-loc cell+ count cmove
 ;
 
 \ concatenates two strings, allocates a new string
